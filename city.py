@@ -12,7 +12,7 @@ class City :
         # * Distance entre deux villes en y
         yDis = abs(self.y - city.y)
         # * Distance entre deux villes en utilisant le théorème de Pythagore
-        distance = np.sqrt((xDis ** 2) + (yDis ** 2))
+        distance = int(np.sqrt((xDis ** 2) + (yDis ** 2)))
         return distance
     
     def toString (self):
