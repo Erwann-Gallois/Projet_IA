@@ -22,3 +22,17 @@ Un commercant doit aller dans plusieurs villes et doit passer dans toutes les vi
     - Qu'est qu'on a implémenter (individus, fonction d'évaluation, mutation)
     - Performances : Tableau avec pour chaque ville les distances du chemin le plus court
     - Code en annexe
+
+## Idée de mutation 
+
+1. **Mutation par inversion :** Sélectionnez une sous-séquence de villes et inversez l'ordre des villes dans cette sous-séquence.
+
+2. **Mutation par échange :** Choisissez deux paires de villes adjacentes et échangez-les de manière à créer une nouvelle séquence.
+
+3. **Mutation par inversion partielle :** Choisissez deux positions aléatoires dans la séquence de villes et inversez l'ordre des villes entre ces deux positions.
+
+4. **Mutation par inversion double :** Choisissez deux paires de positions aléatoires dans la séquence de villes et inversez l'ordre des villes entre ces deux paires.
+
+5. **Mutation par échange circulaire :** Choisissez une position de départ et une longueur pour un échange circulaire dans la séquence de villes.
+
+6. **Mutation par décalage :** Décalez un groupe de villes vers la droite ou la gauche dans la séquence.

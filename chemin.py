@@ -1,5 +1,5 @@
 class Chemin:
-    def __init__(self, depart, arrivee, distance):
+    def __init__(self, depart, arrivee):
         self.depart = depart
         self.arrivee = arrivee
         self.score = depart.distance(arrivee)
