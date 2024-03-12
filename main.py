@@ -72,7 +72,7 @@ def afficheEnfantsListe(enfants):
         print (ligne.toString())
 
 # -------------------------------------------------------------
-# Fonction qui affiche le graph du chemin pour les parents
+# Fonction qui creer le graph du chemin pour les parents
 # -------------------------------------------------------------
 def afficheParentsGraph(parents):
     for i in range(len(parents)):
@@ -99,7 +99,7 @@ def afficheParentsGraph(parents):
         # Afficher la figure pour le parent actuel
         plt.title("Parent " + str(i))  # Ajouter un titre
 # -------------------------------------------------------------
-# Fonction qui affiche le graph du chemin pour les enfants
+# Fonction qui creer le graph du chemin pour les enfants
 # -------------------------------------------------------------
 def afficheEnfantsGraph(enfants):
     # Créer une nouvelle figure pour chaque parent
@@ -125,6 +125,9 @@ def afficheEnfantsGraph(enfants):
     # Afficher la figure pour le parent actuel
     plt.title("Enfant")  # Ajouter un titre
 
+# -------------------------------------------------------------
+# Fonction qui affiche tout les graphs
+# -------------------------------------------------------------
 def afficheGraph():
     plt.tight_layout()  # Ajuster la disposition des subplots
     plt.show()
