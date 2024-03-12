@@ -16,5 +16,5 @@ class City :
         return distance
     
     def toString (self):
-        return self.name
+        return self.name + "(" + str(self.x) + "," + str(self.y) + ")"
     
