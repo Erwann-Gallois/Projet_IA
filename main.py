@@ -10,7 +10,7 @@ taille_x = 1500
 
 taille_y = 1500
 
-nbre_ville = 6
+nbre_ville = 18
 
 nbre_parents = 2
 
@@ -87,7 +87,7 @@ def afficheParentsGraph(parents):
 
         # Parcourir toutes les villes du parent actuel
         for j in range(0, len(parents[i])-1):
-            print(parents[i][j+1].toString())
+            # print(parents[i][j+1].toString())
             # Afficher le chemin pour chaque ville du parent
             ax.plot([parents[i][j].x, parents[i][j+1].x], [parents[i][j].y, parents[i][j+1].y],color= color[i] , linestyle='dotted')
         # Modifier les paramètres de l'axe
@@ -134,6 +134,8 @@ def afficheGraph():
 
 parents = getParent(nbre_parents, cities)
 enfants = getEnfant(parents[0], parents[1])
+afficheParentsListe(parents)
+afficheEnfantsListe(enfants)
 afficheParentsGraph(parents)
 afficheEnfantsGraph(enfants)
 afficheGraph()
