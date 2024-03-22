@@ -2,15 +2,15 @@ import numpy as np
 import random as rd
 import matplotlib.pyplot as plt
 from city import City
-
+from voyage import Voyage
 # -------------------------------------------------------------
 # Definition des constantes
 # -------------------------------------------------------------
-taille_x = 1500
+taille_x = 200
 
-taille_y = 1500
+taille_y = 200
 
-nbre_ville = 18
+nbre_ville = 5
 
 nbre_parents = 2
 
@@ -20,56 +20,49 @@ score_seuil = 50
 
 mutation_rate = 0.01
 
-
-cities = []
-
 # -------------------------------------------------------------
 # Creer des villes aleatoires
 # -------------------------------------------------------------
+cities = []
 for i in range(nbre_ville):
     cities.append(City(str(i+1), rd.randrange(0, taille_x), rd.randrange(0, taille_y)))
 
 # -------------------------------------------------------------
 # Generations des parents
 # -------------------------------------------------------------
-def getParent(n, cities):
-    parents = [[None for _ in range(0, len(cities)+1)] for _ in range(0, n)]
-    for i in range(n):
-        # print("Parent " + str(i) + ":" )
-        rd.shuffle(cities)
-        for j in range(len(cities)):
-            parents[i][j] = (cities[j])
-        parents[i][-1] = parents[i][0]
-    return parents
+def getParent(cities):
+    parent = [None for _ in range(0, len(cities)+1)]
+    # print("Parent " + str(i) + ":" )
+    rd.shuffle(cities)
+    for j in range(len(cities)):
+        parent[j] = (cities[j])
+    parent[-1] = parent[0]
+    parent = Voyage(parent)
+    return parent
 
 # -------------------------------------------------------------
 # Generation de l'enfant a partie de deux parents
 # -------------------------------------------------------------
 def getEnfant(parent1, parent2):
-    enfant = []
-    demi_taille = int((len(parent1)-1)/2)
-    enfant[0:demi_taille-1] = parent1[0:demi_taille-1]
-    while (len(enfant) < nbre_ville):
-        for i in range(0, len(parent2)):
-            if parent2[i] not in enfant:
-                enfant.append(parent2[i])
-    enfant.append(enfant[0])
-    return enfant
-# -------------------------------------------------------------
-# Fonction qui affiche la liste des villes (un chemin) pour les parents
-# -------------------------------------------------------------
-def afficheParentsListe(parents):
-    for index_ligne, ligne in enumerate(parents):
-        print("Parent " + str(index_ligne) + ":" )
-        for j in ligne:
-            print(j.toString())
-# -------------------------------------------------------------
-# Fonction qui affiche la liste des villes (un chemin) pour les enfants
-# -------------------------------------------------------------            
-def afficheEnfantsListe(enfants):
-    print("Enfant")
-    for ligne in enfants:
-        print (ligne.toString())
+    enfant1 = []
+    enfant2 = []
+    demi_taille = int((len(parent1.chemin)-1)/2)
+    demi_taille2 = int((len(parent2.chemin)-1)/2)
+    enfant1[0:demi_taille-1] = parent1.chemin[0:demi_taille-1]
+    enfant2[0:demi_taille2-1] = parent2.chemin[0:demi_taille2-1]
+    while (len(enfant1) < nbre_ville):
+        for i in range(0, len(parent2.chemin)):
+            if parent2.chemin[i] not in enfant1:
+                enfant1.append(parent2.chemin[i])
+    enfant1.append(enfant1[0])
+    while (len(enfant2) < nbre_ville):
+        for i in range(0, len(parent1.chemin)):
+            if parent1.chemin[i] not in enfant2:
+                enfant2.append(parent1.chemin[i])
+    enfant2.append(enfant2[0])
+    enfant1 = Voyage(enfant1)
+    enfant2 = Voyage(enfant2)
+    return enfant1, enfant2
 
 # -------------------------------------------------------------
 # Fonction qui creer le graph du chemin pour les parents
@@ -98,6 +91,7 @@ def afficheParentsGraph(parents):
 
         # Afficher la figure pour le parent actuel
         plt.title("Parent " + str(i))  # Ajouter un titre
+
 # -------------------------------------------------------------
 # Fonction qui creer le graph du chemin pour les enfants
 # -------------------------------------------------------------
@@ -114,7 +108,7 @@ def afficheEnfantsGraph(enfants):
     # Parcourir toutes les villes du parent actuel
     for j in range(0, len(enfants)-1):
         # Afficher le chemin pour chaque ville du parent
-        ax.plot([enfants[j].x, enfants[j+1].x], [enfants[j].y, enfants[j+1].y],color= color , linestyle='dotted')
+        ax.plot([enfants[j].chemin.x, enfants[j+1].chemin.x], [enfants[j].chemin.y, enfants[j+1].chemin.y],color= color , linestyle='dotted')
 
     # Modifier les paramètres de l'axe
     ax.set_xticks([])  # Supprimer les marques sur l'axe x
@@ -132,10 +126,39 @@ def afficheGraph():
     plt.tight_layout()  # Ajuster la disposition des subplots
     plt.show()
 
-parents = getParent(nbre_parents, cities)
-enfants = getEnfant(parents[0], parents[1])
-afficheParentsListe(parents)
-afficheEnfantsListe(enfants)
-afficheParentsGraph(parents)
-afficheEnfantsGraph(enfants)
-afficheGraph()
+# -------------------------------------------------------------
+# Fonction qui affiche tout les graphs
+# -------------------------------------------------------------
+def getScore (tab_citie):
+    sum = 0
+    for i in range(0, len(tab_citie) - 1):
+        sum = sum + tab_citie[i].getDistance(tab_citie[i+1])
+    return sum
+# -------------------------------------------------------------
+# Main
+# -------------------------------------------------------------
+def algo_genetique(parent1, parent2, i, nbre_generation):
+    if i >= nbre_generation:
+        if parent1.score < parent2.score:
+            return parent1
+        else:
+            return parent2
+    enfant1, enfant2 = getEnfant(parent1, parent2)
+
+    # Crée une liste de parents et enfants, puis les trie par score
+    famille = [parent1, parent2, enfant1, enfant2]
+    famille.sort(key=lambda x: x.score)
+
+    # Les deux individus avec les scores les plus bas deviennent les nouveaux parents
+    nouveau_parent1, nouveau_parent2 = famille[:2]
+    # nouveau_parent1.toString()
+    # nouveau_parent2.toString()
+    
+    return algo_genetique(nouveau_parent1, nouveau_parent2, i + 1, nbre_generation)
+
+parent1_depart = getParent(cities)
+parent2_depart = getParent(cities)
+
+result = algo_genetique(parent1_depart, parent2_depart, 0, nbre_generation)
+print(result.toString())
+

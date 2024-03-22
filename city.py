@@ -6,7 +6,7 @@ class City :
         self.x = x
         self.y = y
     
-    def distance (self, city):
+    def getDistance (self, city):
         # * Distance entre deux villes en x
         xDis = abs(self.x - city.x)
         # * Distance entre deux villes en y
@@ -16,5 +16,5 @@ class City :
         return distance
     
     def toString (self):
-        return self.name + "(" + str(self.x) + "," + str(self.y) + ")"
+        print(self.name + "(" + str(self.x) + "," + str(self.y) + ")")
     
