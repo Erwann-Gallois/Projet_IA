@@ -10,7 +10,7 @@ taille_x = 200
 
 taille_y = 200
 
-nbre_ville = 5
+nbre_ville = 6
 
 nbre_parents = 2
 
@@ -143,22 +143,46 @@ def algo_genetique(parent1, parent2, i, nbre_generation):
             return parent1
         else:
             return parent2
+    print("Parent 1 \n")
+    parent1.toString()
+    print("Parent 2 \n")
+    parent2.toString()
     enfant1, enfant2 = getEnfant(parent1, parent2)
-
+    print("Enfant 1 \n")
+    enfant1.toString()
+    print("Enfant 2 \n")
+    enfant2.toString()
     # Crée une liste de parents et enfants, puis les trie par score
     famille = [parent1, parent2, enfant1, enfant2]
     famille.sort(key=lambda x: x.score)
-
     # Les deux individus avec les scores les plus bas deviennent les nouveaux parents
     nouveau_parent1, nouveau_parent2 = famille[:2]
-    # nouveau_parent1.toString()
-    # nouveau_parent2.toString()
-    
+    print("iteration" + str(i) + "\n")
+    print("Min 1 :" + str(nouveau_parent1.score) + "\n")
+    print("Min 2 :" + str(nouveau_parent2.score)+ "\n")
+
     return algo_genetique(nouveau_parent1, nouveau_parent2, i + 1, nbre_generation)
 
 parent1_depart = getParent(cities)
 parent2_depart = getParent(cities)
 
+# best_paths = []
 result = algo_genetique(parent1_depart, parent2_depart, 0, nbre_generation)
+
+# Tracer les meilleurs chemins au fil des générations
+# def plot_evolution(best_paths):
+#     fig, ax = plt.subplots()
+#     for path in best_paths:
+#         x = [city.x for city in path.chemin]
+#         y = [city.y for city in path.chemin]
+#         ax.plot(x, y, marker='o', label=f'Generation {best_paths.index(path) + 1}')
+#     ax.legend()
+#     plt.title("Evolution des chemins au fil des generations")
+#     plt.xlabel("X")
+#     plt.ylabel("Y")
+#     plt.show()
+
+# plot_evolution(best_paths)
+print("Resultat : \n" )
 print(result.toString())
 
