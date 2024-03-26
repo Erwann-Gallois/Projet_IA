@@ -1,0 +1,4 @@
+Si on a le temps
+    - Gerer la superpostion des villes lors de l'ajout sur la carte
+    - Faire un graphique avec l'evolution du meilleur score en fonction des générations
+    
