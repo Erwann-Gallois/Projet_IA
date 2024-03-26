@@ -14,11 +14,9 @@ nbre_ville = 6
 
 nbre_parents = 2
 
-nbre_generation = 100
+nbre_generation = 10
 
-score_seuil = 50
-
-mutation_rate = 0.01
+mutation_rate = 10
 
 # -------------------------------------------------------------
 # Creer des villes aleatoires
@@ -50,19 +48,38 @@ def getEnfant(parent1, parent2):
     demi_taille2 = int((len(parent2.chemin)-1)/2)
     enfant1[0:demi_taille-1] = parent1.chemin[0:demi_taille-1]
     enfant2[0:demi_taille2-1] = parent2.chemin[0:demi_taille2-1]
-    while (len(enfant1) < nbre_ville):
-        for i in range(0, len(parent2.chemin)):
-            if parent2.chemin[i] not in enfant1:
-                enfant1.append(parent2.chemin[i])
+    for i in range(demi_taille2, (len(parent2.chemin))):
+        if parent2.chemin[i] not in enfant1:
+            enfant1.append(parent2.chemin[i])
+    while(len(enfant1) < nbre_ville):
+        for i in range(0, nbre_ville):
+            if cities[i] not in enfant1:
+                enfant1.append(cities[i])
     enfant1.append(enfant1[0])
-    while (len(enfant2) < nbre_ville):
-        for i in range(0, len(parent1.chemin)):
-            if parent1.chemin[i] not in enfant2:
-                enfant2.append(parent1.chemin[i])
+    for i in range(demi_taille2, (len(parent1.chemin))):
+        if parent1.chemin[i] not in enfant2:
+            enfant2.append(parent1.chemin[i])
+    while(len(enfant2) < nbre_ville):
+        for i in range(0, nbre_ville):
+            if cities[i] not in enfant2:
+                enfant1.append(cities[i])
     enfant2.append(enfant2[0])
     enfant1 = Voyage(enfant1)
     enfant2 = Voyage(enfant2)
     return enfant1, enfant2
+
+# -------------------------------------------------------------
+# Fonction qui creer le graph du chemin pour les parents
+# -------------------------------------------------------------
+def mutate(tab_ville):
+    i = rd.randint(0, len(tab_ville))
+    j = rd.randint(0, len(tab_ville))
+    while (j == i):
+        j = rd.randint(0,len(tab_ville))
+    tempo = tab_ville[i]
+    tab_ville[i] = tab_ville[j]
+    tab_ville[j] = tempo
+    return tab_ville
 
 # -------------------------------------------------------------
 # Fonction qui creer le graph du chemin pour les parents
@@ -143,15 +160,15 @@ def algo_genetique(parent1, parent2, i, nbre_generation):
             return parent1
         else:
             return parent2
-    print("Parent 1 \n")
-    parent1.toString()
-    print("Parent 2 \n")
-    parent2.toString()
     enfant1, enfant2 = getEnfant(parent1, parent2)
-    print("Enfant 1 \n")
-    enfant1.toString()
-    print("Enfant 2 \n")
-    enfant2.toString()
+    # Mutation Possible pour l'enfant 1
+    rand = rd.random()*100
+    if (rand < mutation_rate):
+        enfant1.chemin = mutate(enfant1.chemin)
+    # Mutation Possible pour l'enfant 2
+    rand = rd.random()*100
+    if (rand < mutation_rate):
+        enfant2.chemin = mutate(enfant2.chemin)
     # Crée une liste de parents et enfants, puis les trie par score
     famille = [parent1, parent2, enfant1, enfant2]
     famille.sort(key=lambda x: x.score)
