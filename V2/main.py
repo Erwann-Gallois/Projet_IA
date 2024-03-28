@@ -15,7 +15,7 @@ CHANCE_MUTATION = 0.1  # 10%
 PERCENT_GOOD_INDIVIDU = 0.4  # Pourcentage d'individus ayant les meilleurs scores pris pour la prochaine génération
 PERCENT_BAD_INDIVIDU = 0.05  # Pourcentage d'indivudus ayant un score en dessous de la moyenne pour la prochaine génration
 NBRE_MAX_GENERATION = 100
-NBRE_GOOF_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
+NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
 TAILLE_GRILLE_X = 200
 TAILLE_GRILLE_Y = 200
 NBRE_VILLE = 10
@@ -119,13 +119,66 @@ def mutate (individu):
     new_individu = {"Villes" : ", ".join(liste_ville), "Score" : sum(distances)}
     return pd.DataFrame([new_individu])
     
+# ------------------------- Moyenne Score Population ------------------------- #
+def moyPop(populas):
+    avg = populas["Score"].mean()
+    return avg
+    
 # ---------------------------------------------------------------------------- #
-#                              Partie Utilisation                              #
+#                             Algorithme Genetique                             #
 # ---------------------------------------------------------------------------- #
+
+# --------------------- Creation des villes aléatoirement -------------------- #
 cpt = 0
 while cpt < NBRE_VILLE:
     city = add_city()
     ville_df = pd.concat([ville_df, city], ignore_index=True)
     cpt = cpt + 1
 
+# -------------------- Creation de la population de départ ------------------- #
 pop = getPopulation()
+
+def algo_genetique (pop, nbre_generation, i, best_score):
+    if i >= nbre_generation:
+        return best_score
+    # -------------------- Classe parents par score croissant -------------------- #
+    pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
+    if (best_score.loc["Score"] < pop_trie.loc[0, "Score"]):
+        villes = pop_trie.loc[0, "Villes"]
+        score = pop_trie.loc[0, "Score"]
+        best_score = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+    new_pop = pd.DataFrame(columns = ["Villes", "Score"])
+    # ---------------------- On selectionne les bon parents ---------------------- #
+    new_pop = pop_trie[:NBRE_GOOD_INDIVIDU]
+    # ---------------- On ajoute possiblement des mauvais parents ---------------- #
+    for j in range(NBRE_GOOD_INDIVIDU, len(pop_trie)):
+        rand = rd.random()
+        if rand <= PERCENT_BAD_INDIVIDU:
+            villes = pop_trie.loc[j, "Villes"]
+            score = pop_trie.loc[j, "Score"]
+            ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+            new_pop = pd.concat([new_pop, ligne], ignore_index= True)
+    # --------------------------- Creation des enfants --------------------------- #
+    while len(new_pop) < TAILLE_POPULATION:
+        parents = new_pop.sample(n=2).reset_index(drop=True)
+        enfants = getEnfants(parent1= parents.iloc[0], parent2= parents.iloc[1])
+        if TAILLE_POPULATION - len(new_pop) >= 2:
+            new_pop = pd.concat([new_pop, enfants], ignore_index=True)
+        else:
+            rand = rd.randint(0,1)
+            villes = pop_trie.loc[rand, "Villes"]
+            score = pop_trie.loc[rand, "Score"]
+            ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+            print(ligne)
+            new_pop = pd.concat([new_pop, ligne], ignore_index=True)
+    # --------------------------------- Mutations -------------------------------- #
+    for j in range(len(new_pop)):
+        rand = rd.random()
+        if rand <=CHANCE_MUTATION:
+            indivudu = new_pop.iloc[j]
+            new_pop = new_pop.drop(j).reset_index(drop=True)
+            new_individu = mutate(individu=indivudu)
+            new_pop = pd.concat([new_pop, new_individu], ignore_index=True)
+    # -------------- Recursivité pour generer la nouvelle population ------------- #
+    algo_genetique(new_pop, NBRE_MAX_GENERATION, i+1, best_score)
+    
