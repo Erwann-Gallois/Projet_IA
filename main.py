@@ -1,205 +1,198 @@
-import numpy as np
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import random as rd
-import matplotlib.pyplot as plt
-from city import City
-from voyage import Voyage
-# -------------------------------------------------------------
-# Definition des constantes
-# -------------------------------------------------------------
-taille_x = 200
+import pandas as pd
+import numpy as np
+from scipy.spatial import distance_matrix
 
-taille_y = 200
+# ---------------------------------------------------------------------------- #
+#                                  Constantes                                  #
+# ---------------------------------------------------------------------------- #
+TAILLE_POPULATION = 50
+CHANCE_MUTATION = 0.1  # 10%
+PERCENT_GOOD_INDIVIDU = 0.4  # Pourcentage d'individus ayant les meilleurs scores pris pour la prochaine génération
+PERCENT_BAD_INDIVIDU = 0.05  # Pourcentage d'indivudus ayant un score en dessous de la moyenne pour la prochaine génration
+NBRE_MAX_GENERATION = 100
+NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
+TAILLE_GRILLE_X = 2000
+TAILLE_GRILLE_Y = 2000
+NBRE_VILLE = 5
 
-nbre_ville = 6
+# --------------------------- DataFrame des villes --------------------------- #
+ville_df = pd.DataFrame(columns=["Nom", "x", "y"])
+dist_matrix = None  # Ajout d'une variable globale pour la matrice de distance
 
-nbre_parents = 2
+# ---------------------------------------------------------------------------- #
+#                               Fonctions utiles                               #
+# ---------------------------------------------------------------------------- #
 
-nbre_generation = 10
+# ----------------------- Creation ville aléatoirement ----------------------- #
+def add_city(nom = None):
+    global dist_matrix  # Utilisation de la variable globale
+    global ville_df
+    if nom is None:
+        new_ville = pd.DataFrame({"Nom": "Ville " + str(len(ville_df)+1), "x": rd.randrange(0, TAILLE_GRILLE_X), "y": rd.randrange(0, TAILLE_GRILLE_Y)}, index = [0])
+    else:
+        new_ville = pd.DataFrame({"Nom": nom, "x": rd.randrange(0, TAILLE_GRILLE_X), "y": rd.randrange(0, TAILLE_GRILLE_Y)}, index = [0])
+    ville_df = pd.concat([ville_df, new_ville], ignore_index=True)
+    # Mise à jour de la matrice de distance chaque fois qu'une nouvelle ville est ajoutée
+    coords = ville_df[['x', 'y']].to_numpy()
+    dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
+    return new_ville
 
-mutation_rate = 10
+# ------------------------ Distance entre deux villes ------------------------ #
+def getDistance(nomVille1, nomVille2):
+    global dist_matrix  # Utilisation de la variable globale
+    return dist_matrix[nomVille1][nomVille2]
 
-# -------------------------------------------------------------
-# Creer des villes aleatoires
-# -------------------------------------------------------------
-cities = []
-for i in range(nbre_ville):
-    cities.append(City(str(i+1), rd.randrange(0, taille_x), rd.randrange(0, taille_y)))
+# --------------------------- Creation un individu --------------------------- #
+def getIndividus():
+    rand = ville_df.sample(frac=1).reset_index(drop=True)
+    distances = []
+    for i in range(len(rand) - 1):
+        distance = getDistance(rand.loc[i, 'Nom'], rand.loc[i + 1, 'Nom'])
+        distances.append(distance)
+    villes = ", ".join(rand["Nom"])
+    score = sum(distances)
+    return {"Villes": villes, "Score": score}
 
-# -------------------------------------------------------------
-# Generations des parents
-# -------------------------------------------------------------
-def getParent(cities):
-    parent = [None for _ in range(0, len(cities)+1)]
-    # print("Parent " + str(i) + ":" )
-    rd.shuffle(cities)
-    for j in range(len(cities)):
-        parent[j] = (cities[j])
-    parent[-1] = parent[0]
-    parent = Voyage(parent)
-    return parent
 
-# -------------------------------------------------------------
-# Generation de l'enfant a partie de deux parents
-# -------------------------------------------------------------
-def getEnfant(parent1, parent2):
-    enfant1 = []
-    enfant2 = []
-    demi_taille = int((len(parent1.chemin)-1)/2)
-    demi_taille2 = int((len(parent2.chemin)-1)/2)
-    enfant1[0:demi_taille-1] = parent1.chemin[0:demi_taille-1]
-    enfant2[0:demi_taille2-1] = parent2.chemin[0:demi_taille2-1]
-    for i in range(demi_taille2, (len(parent2.chemin))):
-        if parent2.chemin[i] not in enfant1:
-            enfant1.append(parent2.chemin[i])
-    while(len(enfant1) < nbre_ville):
-        for i in range(0, nbre_ville):
-            if cities[i] not in enfant1:
-                enfant1.append(cities[i])
-    enfant1.append(enfant1[0])
-    for i in range(demi_taille2, (len(parent1.chemin))):
-        if parent1.chemin[i] not in enfant2:
-            enfant2.append(parent1.chemin[i])
-    while(len(enfant2) < nbre_ville):
-        for i in range(0, nbre_ville):
-            if cities[i] not in enfant2:
-                enfant1.append(cities[i])
-    enfant2.append(enfant2[0])
-    enfant1 = Voyage(enfant1)
-    enfant2 = Voyage(enfant2)
-    return enfant1, enfant2
+# ------------------------- Creation d'une population ------------------------ #
+def getPopulation():
+    population_df = pd.DataFrame([], columns=["Villes", "Score"])
+    for _ in range(TAILLE_POPULATION):
+        dict_individu = getIndividus()
+        individu = pd.DataFrame(dict_individu, index = [0])
+        population_df = pd.concat([population_df, individu], ignore_index=True)
+    return population_df
 
-# -------------------------------------------------------------
-# Fonction qui creer le graph du chemin pour les parents
-# -------------------------------------------------------------
-def mutate(tab_ville):
-    i = rd.randint(0, len(tab_ville))
-    j = rd.randint(0, len(tab_ville))
+# --------------------------- Creation des enfants --------------------------- #
+def getEnfants(parent1, parent2):
+    # *Recuperation ville venant du dataFrame
+    liste_ville1 = parent1["Villes"]
+    liste_ville2 = parent2["Villes"]
+    # ---------------------------------------------------------------------------- #
+    # *Creation d'un tableau contenant les villes
+    liste_ville1 = liste_ville1.split(", ")
+    liste_ville2 = liste_ville2.split(", ")
+    # ---------------------------------------------------------------------------- #
+    # *Creation de la premiere partie des enfants
+    enfant1 = liste_ville1[:int(len(liste_ville1)/2)]
+    enfant2 = liste_ville2[:int(len(liste_ville2)/2)]
+    # ---------------------------------------------------------------------------- #
+    # *Ajout de la seconde partie en partant de la fin de la liste des villes
+    for i in range (len(liste_ville2)-1, -1, -1):
+        if liste_ville2[i] not in enfant1:
+            enfant1.append(liste_ville2[i])
+    for i in range (len(liste_ville1)-1, -1, -1):
+        if liste_ville1[i] not in enfant2:
+            enfant2.append(liste_ville1[i])
+    # ---------------------------------------------------------------------------- #
+    # * Calcul Score des enfants
+    distances = []
+    for i in range(len(enfant1) - 1):
+        distance = getDistance(enfant1[i], enfant1[i+1])
+        distances.append(distance)
+    enfant1 = {"Villes" : ", ".join(enfant1), "Score" : sum(distances)}
+    distances = []
+    for i in range(len(enfant2) - 1):
+        distance = getDistance(enfant2[i], enfant2[i+1])
+        distances.append(distance)
+    enfant2 = {"Villes" : ", ".join(enfant2), "Score" : sum(distances)}
+    enfants_df = pd.DataFrame([enfant1, enfant2])
+    return enfants_df
+
+# --------------------------------- Mutation --------------------------------- #
+def mutate (individu):
+    liste_ville = individu["Villes"]
+    liste_ville = liste_ville.split(", ")
+    i = rd.randint(0, len(liste_ville)-1)
+    # print("i = ", str(i))
+    j = rd.randint(0, len(liste_ville)-1)
+    # print("j = ", str(j))
     while (j == i):
-        j = rd.randint(0,len(tab_ville))
-    tempo = tab_ville[i]
-    tab_ville[i] = tab_ville[j]
-    tab_ville[j] = tempo
-    return tab_ville
+        j = rd.randint(0,len(liste_ville)-1)
+    tempo = liste_ville[i]
+    liste_ville[i] = liste_ville[j]
+    liste_ville[j] = tempo
+    distances = []
+    for i in range(len(liste_ville) - 1):
+        distance = getDistance(liste_ville[i], liste_ville[i+1])
+        distances.append(distance)
+    new_individu = {"Villes" : ", ".join(liste_ville), "Score" : sum(distances)}
+    return pd.DataFrame([new_individu])
+    
+# ------------------------- Moyenne Score Population ------------------------- #
+def moyPop(populas):
+    avg = populas["Score"].mean()
+    return avg
 
-# -------------------------------------------------------------
-# Fonction qui creer le graph du chemin pour les parents
-# -------------------------------------------------------------
-def afficheParentsGraph(parents):
-    for i in range(len(parents)):
-        # Créer une nouvelle figure pour chaque parent
-        fig, ax = plt.subplots()
-        color = ["blue", "red"]
-        # Parcourir toutes les villes
-        for city in cities:
-            # Créer un point pour chaque ville avec une couleur aléatoire
-            ax.scatter(city.x, city.y, color= "red")
-            ax.text(city.x, city.y, city.name) # Affiche le nom de la ville
+# ---------------------------------------------------------------------------- #
+#                             Algorithme Génétique                             #
+# ---------------------------------------------------------------------------- #
+def algo_genetique (pop):
+    i = 0
+    while i < NBRE_MAX_GENERATION:
+        # -------------------- Classe parents par score croissant -------------------- #
+        pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
+        # best_score = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+        # if (best_score.loc[0, "Score"] < pop_trie.loc[0, "Score"]):
+        #     villes = pop_trie.loc[0, "Villes"]
+        #     score = pop_trie.loc[0, "Score"]
+        #     best_score = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+        new_pop = pd.DataFrame(columns = ["Villes", "Score"])
+        # ---------------------- On selectionne les bon parents ---------------------- #
+        new_pop = pop_trie[:NBRE_GOOD_INDIVIDU]
+        # ---------------- On ajoute possiblement des mauvais parents ---------------- #
+        for j in range(NBRE_GOOD_INDIVIDU, len(pop_trie)):
+            rand = rd.random()
+            if rand <= PERCENT_BAD_INDIVIDU:
+                villes = pop_trie.loc[j, "Villes"]
+                score = pop_trie.loc[j, "Score"]
+                ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+                new_pop = pd.concat([new_pop, ligne], ignore_index= True)
+        # --------------------------- Creation des enfants --------------------------- #
+        while len(new_pop) < TAILLE_POPULATION:
+            parents = new_pop.sample(n=2).reset_index(drop=True)
+            enfants = getEnfants(parent1= parents.iloc[0], parent2= parents.iloc[1])
+            if TAILLE_POPULATION - len(new_pop) >= 2:
+                new_pop = pd.concat([new_pop, enfants], ignore_index=True)
+            else:
+                rand = rd.randint(0,1)
+                villes = pop_trie.loc[rand, "Villes"]
+                score = pop_trie.loc[rand, "Score"]
+                ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+                new_pop = pd.concat([new_pop, ligne], ignore_index=True)
+        # --------------------------------- Mutations -------------------------------- #
+        for k in range(len(new_pop)):
+            rand = rd.random()
+            if rand <=CHANCE_MUTATION:
+                indivudu = new_pop.iloc[k]
+                new_pop = new_pop.drop(k).reset_index(drop=True)
+                new_individu = mutate(indivudu)
+                new_pop = pd.concat([new_pop, new_individu], ignore_index=True)
+        # -------------- Recursivité pour generer la nouvelle population ------------- #
+        # print("Population "+ str(i))
+        # print(new_pop)
+        i = i + 1
+    return new_pop
 
-        # Parcourir toutes les villes du parent actuel
-        for j in range(0, len(parents[i])-1):
-            # print(parents[i][j+1].toString())
-            # Afficher le chemin pour chaque ville du parent
-            ax.plot([parents[i][j].x, parents[i][j+1].x], [parents[i][j].y, parents[i][j+1].y],color= color[i] , linestyle='dotted')
-        # Modifier les paramètres de l'axe
-        ax.set_xticks([])  # Supprimer les marques sur l'axe x
-        ax.set_yticks([])  # Supprimer les marques sur l'axe y
-        ax.axis('off')  # Supprimer les axes
-        ax.grid(True)  # Afficher la grille
+# ---------------------------------------------------------------------------- #
+#                               Partie Lancement                               #
+# ---------------------------------------------------------------------------- #
 
-        # Afficher la figure pour le parent actuel
-        plt.title("Parent " + str(i))  # Ajouter un titre
-
-# -------------------------------------------------------------
-# Fonction qui creer le graph du chemin pour les enfants
-# -------------------------------------------------------------
-def afficheEnfantsGraph(enfants):
-    # Créer une nouvelle figure pour chaque parent
-    fig, ax = plt.subplots()
-    color = np.random.rand(3,)
-    # Parcourir toutes les villes
-    for city in cities:
-        # Créer un point pour chaque ville avec une couleur aléatoire
-        ax.scatter(city.x, city.y, color= "red")
-        ax.text(city.x, city.y, city.name) # Affiche le nom de la ville
-
-    # Parcourir toutes les villes du parent actuel
-    for j in range(0, len(enfants)-1):
-        # Afficher le chemin pour chaque ville du parent
-        ax.plot([enfants[j].chemin.x, enfants[j+1].chemin.x], [enfants[j].chemin.y, enfants[j+1].chemin.y],color= color , linestyle='dotted')
-
-    # Modifier les paramètres de l'axe
-    ax.set_xticks([])  # Supprimer les marques sur l'axe x
-    ax.set_yticks([])  # Supprimer les marques sur l'axe y
-    ax.axis('off')  # Supprimer les axes
-    ax.grid(True)  # Afficher la grille
-
-    # Afficher la figure pour le parent actuel
-    plt.title("Enfant")  # Ajouter un titre
-
-# -------------------------------------------------------------
-# Fonction qui affiche tout les graphs
-# -------------------------------------------------------------
-def afficheGraph():
-    plt.tight_layout()  # Ajuster la disposition des subplots
-    plt.show()
-
-# -------------------------------------------------------------
-# Fonction qui affiche tout les graphs
-# -------------------------------------------------------------
-def getScore (tab_citie):
-    sum = 0
-    for i in range(0, len(tab_citie) - 1):
-        sum = sum + tab_citie[i].getDistance(tab_citie[i+1])
-    return sum
-# -------------------------------------------------------------
-# Main
-# -------------------------------------------------------------
-def algo_genetique(parent1, parent2, i, nbre_generation):
-    if i >= nbre_generation:
-        if parent1.score < parent2.score:
-            return parent1
-        else:
-            return parent2
-    enfant1, enfant2 = getEnfant(parent1, parent2)
-    # Mutation Possible pour l'enfant 1
-    rand = rd.random()*100
-    if (rand < mutation_rate):
-        enfant1.chemin = mutate(enfant1.chemin)
-    # Mutation Possible pour l'enfant 2
-    rand = rd.random()*100
-    if (rand < mutation_rate):
-        enfant2.chemin = mutate(enfant2.chemin)
-    # Crée une liste de parents et enfants, puis les trie par score
-    famille = [parent1, parent2, enfant1, enfant2]
-    famille.sort(key=lambda x: x.score)
-    # Les deux individus avec les scores les plus bas deviennent les nouveaux parents
-    nouveau_parent1, nouveau_parent2 = famille[:2]
-    print("iteration" + str(i) + "\n")
-    print("Min 1 :" + str(nouveau_parent1.score) + "\n")
-    print("Min 2 :" + str(nouveau_parent2.score)+ "\n")
-
-    return algo_genetique(nouveau_parent1, nouveau_parent2, i + 1, nbre_generation)
-
-parent1_depart = getParent(cities)
-parent2_depart = getParent(cities)
-
-# best_paths = []
-result = algo_genetique(parent1_depart, parent2_depart, 0, nbre_generation)
-
-# Tracer les meilleurs chemins au fil des générations
-# def plot_evolution(best_paths):
-#     fig, ax = plt.subplots()
-#     for path in best_paths:
-#         x = [city.x for city in path.chemin]
-#         y = [city.y for city in path.chemin]
-#         ax.plot(x, y, marker='o', label=f'Generation {best_paths.index(path) + 1}')
-#     ax.legend()
-#     plt.title("Evolution des chemins au fil des generations")
-#     plt.xlabel("X")
-#     plt.ylabel("Y")
-#     plt.show()
-
-# plot_evolution(best_paths)
-print("Resultat : \n" )
-print(result.toString())
-
+# --------------------- Creation des villes aléatoirement -------------------- #
+cpt = 0
+while cpt < NBRE_VILLE:
+    add_city()
+    cpt = cpt + 1
+print(ville_df)
+print(dist_matrix)
+print(getDistance("Ville 1", "Ville 3"))
+# -------------------- Creation de la population de départ ------------------- #
+# pop = getPopulation()
+# print("Population initiale : \n")
+# print(pop)
+# result = algo_genetique(pop)
+# print("Population apres algorithme : \n")
+# print(result)
