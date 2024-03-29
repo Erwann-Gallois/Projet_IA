@@ -43,9 +43,7 @@ def add_city(nom = None):
 # ------------------------ Distance entre deux villes ------------------------ #
 def getDistance(nomVille1, nomVille2):
     global dist_matrix  # Utilisation de la variable globale
-    i = ville_df.index[ville_df["Nom"] == nomVille1][0]
-    j = ville_df.index[ville_df["Nom"] == nomVille2][0]
-    return dist_matrix[i][j]
+    return dist_matrix[nomVille1][nomVille2]
 
 # --------------------------- Creation un individu --------------------------- #
 def getIndividus():
