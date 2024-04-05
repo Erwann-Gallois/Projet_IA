@@ -27,10 +27,12 @@ import main as main
 def create_graph():
 
     fig, ax = plt.subplots()
-    ax.plot(main.TAILLE_GRILLE_X, main.TAILLE_GRILLE_Y)
     ax.set_title('Carte des Villes')
     ax.set_xlabel('coordonnées x')
     ax.set_ylabel('coordonnées y')
+
+    ax.set_ylim(0, main.TAILLE_GRILLE_Y)
+    ax.set_xlim(0, main.TAILLE_GRILLE_X)
     
     return fig
 
