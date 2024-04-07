@@ -8,11 +8,11 @@ from scipy.spatial import distance_matrix
 # ---------------------------------------------------------------------------- #
 #                                  Constantes                                  #
 # ---------------------------------------------------------------------------- #
-TAILLE_POPULATION = 100
+TAILLE_POPULATION = 10
 CHANCE_MUTATION = 0.1  # 10%
 PERCENT_GOOD_INDIVIDU = 0.4  # Pourcentage d'individus ayant les meilleurs scores pris pour la prochaine génération
 PERCENT_BAD_INDIVIDU = 0.05  # Pourcentage d'indivudus ayant un score en dessous de la moyenne pour la prochaine génration
-NBRE_MAX_GENERATION = 10000
+NBRE_MAX_GENERATION = 1000
 NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
 TAILLE_GRILLE_X = 2000
 TAILLE_GRILLE_Y = 2000
@@ -177,6 +177,7 @@ def algo_genetique (pop):
         # print("Population "+ str(i))
         # print(new_pop)
         i = i + 1
+        pop = new_pop
     return new_pop
 
 # ---------------------------------------------------------------------------- #
@@ -188,14 +189,10 @@ cpt = 0
 while cpt < NBRE_VILLE:
     add_city()
     cpt = cpt + 1
-
-# print(ville_df)
-# print(dist_matrix)
-# print(getDistance("Ville 1", "Ville 3"))
 # -------------------- Creation de la population de départ ------------------- #
-# pop = getPopulation()
-# print("Population initiale : \n")
-# print(pop)
-# result = algo_genetique(pop)
-# print("Population apres algorithme : \n")
-# print(result)
+pop = getPopulation()
+print("Population initiale : \n")
+print(pop.sort_values(by = "Score").reset_index(drop=True))
+result = algo_genetique(pop)
+print("Population apres algorithme : \n")
+print(result)
