@@ -48,6 +48,9 @@ def getDistance(nomVille1, nomVille2):
 # --------------------------- Creation un individu --------------------------- #
 def getIndividus():
     rand = ville_df.sample(frac=1).reset_index(drop=True)
+    # ------------------------ Ajout ville depart a la fin ----------------------- #
+    first_row = rand.iloc[[0]]
+    rand = pd.concat([rand, first_row], ignore_index=True)
     distances = []
     for i in range(len(rand) - 1):
         distance = getDistance(rand.loc[i, 'Nom'], rand.loc[i + 1, 'Nom'])
@@ -84,9 +87,11 @@ def getEnfants(parent1, parent2):
     for i in range (len(liste_ville2)-1, -1, -1):
         if liste_ville2[i] not in enfant1:
             enfant1.append(liste_ville2[i])
+    enfant1.append(enfant1[0])
     for i in range (len(liste_ville1)-1, -1, -1):
         if liste_ville1[i] not in enfant2:
             enfant2.append(liste_ville1[i])
+    enfant2.append(enfant2[0])
     # ---------------------------------------------------------------------------- #
     # * Calcul Score des enfants
     distances = []
@@ -106,12 +111,12 @@ def getEnfants(parent1, parent2):
 def mutate (individu):
     liste_ville = individu["Villes"]
     liste_ville = liste_ville.split(", ")
-    i = rd.randint(0, len(liste_ville)-1)
+    i = rd.randint(0, len(liste_ville)-2)
     # print("i = ", str(i))
-    j = rd.randint(0, len(liste_ville)-1)
+    j = rd.randint(0, len(liste_ville)-2)
     # print("j = ", str(j))
     while (j == i):
-        j = rd.randint(0,len(liste_ville)-1)
+        j = rd.randint(0,len(liste_ville)-2)
     tempo = liste_ville[i]
     liste_ville[i] = liste_ville[j]
     liste_ville[j] = tempo
@@ -135,11 +140,6 @@ def algo_genetique (pop):
     while i < NBRE_MAX_GENERATION:
         # -------------------- Classe parents par score croissant -------------------- #
         pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
-        # best_score = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
-        # if (best_score.loc[0, "Score"] < pop_trie.loc[0, "Score"]):
-        #     villes = pop_trie.loc[0, "Villes"]
-        #     score = pop_trie.loc[0, "Score"]
-        #     best_score = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
         new_pop = pd.DataFrame(columns = ["Villes", "Score"])
         # ---------------------- On selectionne les bon parents ---------------------- #
         new_pop = pop_trie[:NBRE_GOOD_INDIVIDU]
@@ -147,10 +147,11 @@ def algo_genetique (pop):
         for j in range(NBRE_GOOD_INDIVIDU, len(pop_trie)):
             rand = rd.random()
             if rand <= PERCENT_BAD_INDIVIDU:
-                villes = pop_trie.loc[j, "Villes"]
-                score = pop_trie.loc[j, "Score"]
-                ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
-                new_pop = pd.concat([new_pop, ligne], ignore_index= True)
+                # villes = pop_trie.loc[j, "Villes"]
+                # score = pop_trie.loc[j, "Score"]
+                # ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+                bad_individu = pop_trie.iloc[[j]]
+                new_pop = pd.concat([new_pop, bad_individu], ignore_index= True)
         # --------------------------- Creation des enfants --------------------------- #
         while len(new_pop) < TAILLE_POPULATION:
             parents = new_pop.sample(n=2).reset_index(drop=True)
@@ -159,10 +160,11 @@ def algo_genetique (pop):
                 new_pop = pd.concat([new_pop, enfants], ignore_index=True)
             else:
                 rand = rd.randint(0,1)
-                villes = pop_trie.loc[rand, "Villes"]
-                score = pop_trie.loc[rand, "Score"]
-                ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
-                new_pop = pd.concat([new_pop, ligne], ignore_index=True)
+                # villes = pop_trie.loc[rand, "Villes"]
+                # score = pop_trie.loc[rand, "Score"]
+                # ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
+                enfant = pop_trie.iloc[[rand]]
+                new_pop = pd.concat([new_pop, enfant], ignore_index=True)
         # --------------------------------- Mutations -------------------------------- #
         for k in range(len(new_pop)):
             rand = rd.random()
@@ -186,8 +188,9 @@ cpt = 0
 while cpt < NBRE_VILLE:
     add_city()
     cpt = cpt + 1
-print(ville_df)
-print(dist_matrix)
+
+# print(ville_df)
+# print(dist_matrix)
 # print(getDistance("Ville 1", "Ville 3"))
 # -------------------- Creation de la population de départ ------------------- #
 # pop = getPopulation()
