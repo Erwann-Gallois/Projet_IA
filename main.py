@@ -178,6 +178,7 @@ def algo_genetique (pop):
         # print(new_pop)
         i = i + 1
         pop = new_pop
+    new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop
 
 # ---------------------------------------------------------------------------- #
