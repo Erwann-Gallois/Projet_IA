@@ -29,7 +29,7 @@ for i in range(10):
 # Redimensionnement des lignes et colonnes pour que les frames s'adaptent à la taille de la fenêtre
 for i in range(10):
     var.grid_rowconfigure(i, weight=1)
-for i in range(10):
+for i in range(2):
     var.grid_columnconfigure(i, weight=1)
 # ------------------------------- Partie graph ------------------------------- #
 fig, ax = plt.subplots()
@@ -47,37 +47,38 @@ canvas.get_tk_widget().pack(side= "left", fill="both", expand=True)
 
 # -------------------------------- Label Title ------------------------------- #
 label1 = ctk.CTkLabel(text="Variables", font=("Arial", 20), master = var)
-label1.grid(row=0, column=0, columnspan=2, pady=(10, 10))
+label1.grid(row=0, column=0, columnspan=2)
 
 # ----------------------------- Taille Population ---------------------------- #
 label2 = ctk.CTkLabel(text="Taille de la population: ", master = var)
 entry2 = ctk.CTkEntry(master = var)
 label2.grid(row=1, column=0)
-entry2.grid(row=1, column=1, sticky="ew", ipadx=10)
+entry2.grid(row=1, column=1)
 
 # ------------------------------ Chance Mutation ----------------------------- #
 label3 = ctk.CTkLabel(text="Chance de mutation: ", master = var)
 entry3 = ctk.CTkEntry(master = var)
 label3.grid(row=2, column=0)
-entry3.grid(row=2, column=1, sticky="ew", ipadx=10)
+entry3.grid(row=2, column=1)
 
 # ----------------------------- Nombre Generation ---------------------------- #
-label4 = ctk.CTkLabel(text="Nombre de generation: ", master = var)
+label4 = ctk.CTkLabel(text="Nbre de generation: ", master = var)
 entry4 = ctk.CTkEntry(master = var)
 label4.grid(row=3, column=0)
-entry4.grid(row=3, column=1, sticky="nsew", ipadx=2)
+entry4.grid(row=3, column=1)
 
 # ------------------------- Pourcentage bon individu ------------------------- #
-label5 = ctk.CTkLabel(text="Pourcentage bon individu: ", master = var)
+label5 = ctk.CTkLabel(text="% bon individu: ", master = var)
 entry5 = ctk.CTkEntry(master = var)
 label5.grid(row=4, column=0)
-entry5.grid(row=4, column=1, sticky="ew", ipadx=10)
+entry5.grid(row=4, column=1)
 
 # ----------------------- Pourcentage mauvais individu ----------------------- #
-label6 = ctk.CTkLabel(text="Pourcentage mauvais individu: ", master = var)
+label6 = ctk.CTkLabel(text="% mauvais individu: ", master = var)
 entry6 = ctk.CTkEntry(master = var)
-label6.grid(row=5, column=0)
+label6.grid(row=5, column=0, pady=(0, 10))
 entry6.grid(row=5, column=1, sticky="ew", ipadx=10)
 
 # ---------------------------- initiate the window --------------------------- #
 root.mainloop()
+root.update()
