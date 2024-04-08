@@ -84,18 +84,23 @@ entry6 = ctk.CTkEntry(master = var)
 label6.grid(row=5, column=0)
 entry6.grid(row=5, column=1)
 
+# ----------------------- Pourcentage mauvais individu ----------------------- #
+label9 = ctk.CTkLabel(text="Meilleur Score: ", master = var)
+label9.grid(row=6, column=0)
+label10 = ctk.CTkLabel(text="0", master = var)
+label10.grid(row=6, column=1)
 # ------------------------------- Partie ville ------------------------------- #
 # -------------------------------- Label Title ------------------------------- #
-label7 = ctk.CTkLabel(text="Villes", font=("Arial", 20), master = city)
-label7.grid(row=0, column=1, sticky = "nsew")
+label7 = ctk.CTkLabel(text="Problème du voyageur de commerce", font=("Arial", 20), master = city)
+label7.grid(row=0, column=0, columnspan=4)
 
 button = ctk.CTkButton(master = city, text="Ville Aléatoire")
 button.grid(row=1, column=3)
 
 label8 = ctk.CTkLabel(text="Nom de la ville: ", master = city)
 entry8 = ctk.CTkEntry(master = city)
-label8.grid(row=2, column=1)
-entry8.grid(row=2, column=2)
+label8.grid(row=1, column=1)
+entry8.grid(row=1, column=2)
 
 
 
