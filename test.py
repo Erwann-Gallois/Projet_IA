@@ -13,7 +13,7 @@ root.resizable(0, 0)
 # ---------------------------- Création des frames --------------------------- #
 var = ctk.CTkFrame(master=root)  # Frame à droite
 graph = ctk.CTkFrame(master=root)  # Frame pour le graphique
-city = ctk.CTkFrame(root, fg_color="red")  # Frame en haut à gauche
+city = ctk.CTkFrame(root)  # Frame en haut à gauche
 
 # --------------------------- Placement des frames --------------------------- #
 var.grid(row=0, column=7, rowspan=10, columnspan=4, sticky="nsew")  # Frame à droite prend 5 colonnes et toutes les lignes
@@ -31,6 +31,11 @@ for i in range(10):
     var.grid_rowconfigure(i, weight=1)
 for i in range(2):
     var.grid_columnconfigure(i, weight=1)
+
+for i in range(2):
+    city.grid_rowconfigure(i, weight=1)
+for i in range(3):
+    city.grid_columnconfigure(i, weight=1)
 # ------------------------------- Partie graph ------------------------------- #
 fig, ax = plt.subplots()
 ax.set_title('Carte des Villes')
@@ -76,9 +81,24 @@ entry5.grid(row=4, column=1)
 # ----------------------- Pourcentage mauvais individu ----------------------- #
 label6 = ctk.CTkLabel(text="% mauvais individu: ", master = var)
 entry6 = ctk.CTkEntry(master = var)
-label6.grid(row=5, column=0, pady=(0, 10))
-entry6.grid(row=5, column=1, sticky="ew", ipadx=10)
+label6.grid(row=5, column=0)
+entry6.grid(row=5, column=1)
+
+# ------------------------------- Partie ville ------------------------------- #
+# -------------------------------- Label Title ------------------------------- #
+label7 = ctk.CTkLabel(text="Villes", font=("Arial", 20), master = city)
+label7.grid(row=0, column=1, sticky = "nsew")
+
+button = ctk.CTkButton(master = city, text="Ville Aléatoire")
+button.grid(row=1, column=3)
+
+label8 = ctk.CTkLabel(text="Nom de la ville: ", master = city)
+entry8 = ctk.CTkEntry(master = city)
+label8.grid(row=2, column=1)
+entry8.grid(row=2, column=2)
+
+
 
 # ---------------------------- initiate the window --------------------------- #
 root.mainloop()
-root.update()
+root.destroy()
