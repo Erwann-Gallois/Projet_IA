@@ -191,9 +191,9 @@ while cpt < NBRE_VILLE:
     add_city()
     cpt = cpt + 1
 # -------------------- Creation de la population de départ ------------------- #
-pop = getPopulation()
-print("Population initiale : \n")
-print(pop.sort_values(by = "Score").reset_index(drop=True))
-result = algo_genetique(pop)
-print("Population apres algorithme : \n")
-print(result)
+# pop = getPopulation()
+# print("Population initiale : \n")
+# print(pop.sort_values(by = "Score").reset_index(drop=True))
+# result = algo_genetique(pop)
+# print("Population apres algorithme : \n")
+# print(result)
