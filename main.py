@@ -1,6 +1,7 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import random as rd
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -8,11 +9,11 @@ from scipy.spatial import distance_matrix
 # ---------------------------------------------------------------------------- #
 #                                  Constantes                                  #
 # ---------------------------------------------------------------------------- #
-TAILLE_POPULATION = 10
-CHANCE_MUTATION = 0.1  # 10%
+TAILLE_POPULATION = 100
+CHANCE_MUTATION = 0.01  # 10%
 PERCENT_GOOD_INDIVIDU = 0.4  # Pourcentage d'individus ayant les meilleurs scores pris pour la prochaine génération
 PERCENT_BAD_INDIVIDU = 0.05  # Pourcentage d'indivudus ayant un score en dessous de la moyenne pour la prochaine génration
-NBRE_MAX_GENERATION = 1000
+NBRE_MAX_GENERATION = 100
 NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
 TAILLE_GRILLE_X = 2000
 TAILLE_GRILLE_Y = 2000
@@ -65,6 +66,9 @@ def getPopulation():
     population_df = pd.DataFrame([], columns=["Villes", "Score"])
     for _ in range(TAILLE_POPULATION):
         dict_individu = getIndividus()
+        while dict_individu["Villes"] in population_df["Villes"].values:
+            print("Je suis ici")
+            dict_individu = getIndividus()
         individu = pd.DataFrame(dict_individu, index = [0])
         population_df = pd.concat([population_df, individu], ignore_index=True)
     return population_df
@@ -126,18 +130,32 @@ def mutate (individu):
         distances.append(distance)
     new_individu = {"Villes" : ", ".join(liste_ville), "Score" : sum(distances)}
     return pd.DataFrame([new_individu])
-    
-# ------------------------- Moyenne Score Population ------------------------- #
-def moyPop(populas):
-    avg = populas["Score"].mean()
-    return avg
+
+# ---------------------------------------------------------------------------- #
+#                               Partie Graphique                               #
+# ---------------------------------------------------------------------------- #
+
+def plot_valeur(valeur_df, fig, ax):
+    ax.cla()  # Efface l'ancien graphique
+    ax.plot(valeur_df["Generation"], valeur_df["Min"], label='Min')
+    ax.plot(valeur_df["Generation"], valeur_df["Moy"], label='Moy')
+    ax.legend(loc='upper right')
+    plt.title("Evolution des valeurs")
+    fig.canvas.draw()  # Redessine le graphique
+    plt.pause(0.01)  # Pause pour permettre la mise à jour du graphique
+    # return fig, ax
 
 # ---------------------------------------------------------------------------- #
 #                             Algorithme Génétique                             #
 # ---------------------------------------------------------------------------- #
 def algo_genetique (pop):
     i = 0
+    fig, ax = plt.subplots()
+    valeur_df = pd.DataFrame(columns=["Generation", "Min", "Moy"])
     while i < NBRE_MAX_GENERATION:
+        new_valeur = {"Generation": i, "Min": pop["Score"].min(), "Moy": pop["Score"].mean()}
+        valeur_df = pd.concat([valeur_df, pd.DataFrame([new_valeur], index = [0])], ignore_index=True)
+        plot_valeur(valeur_df, fig, ax)
         # -------------------- Classe parents par score croissant -------------------- #
         pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
         new_pop = pd.DataFrame(columns = ["Villes", "Score"])
@@ -147,9 +165,6 @@ def algo_genetique (pop):
         for j in range(NBRE_GOOD_INDIVIDU, len(pop_trie)):
             rand = rd.random()
             if rand <= PERCENT_BAD_INDIVIDU:
-                # villes = pop_trie.loc[j, "Villes"]
-                # score = pop_trie.loc[j, "Score"]
-                # ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
                 bad_individu = pop_trie.iloc[[j]]
                 new_pop = pd.concat([new_pop, bad_individu], ignore_index= True)
         # --------------------------- Creation des enfants --------------------------- #
@@ -160,9 +175,6 @@ def algo_genetique (pop):
                 new_pop = pd.concat([new_pop, enfants], ignore_index=True)
             else:
                 rand = rd.randint(0,1)
-                # villes = pop_trie.loc[rand, "Villes"]
-                # score = pop_trie.loc[rand, "Score"]
-                # ligne = pd.DataFrame({"Villes" : villes, "Score" : score}, index = [0])
                 enfant = pop_trie.iloc[[rand]]
                 new_pop = pd.concat([new_pop, enfant], ignore_index=True)
         # --------------------------------- Mutations -------------------------------- #
@@ -174,26 +186,16 @@ def algo_genetique (pop):
                 new_individu = mutate(indivudu)
                 new_pop = pd.concat([new_pop, new_individu], ignore_index=True)
         # -------------- Recursivité pour generer la nouvelle population ------------- #
-        # print("Population "+ str(i))
-        # print(new_pop)
         i = i + 1
         pop = new_pop
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
-    return new_pop
+    return new_pop, valeur_df
 
 # ---------------------------------------------------------------------------- #
 #                               Partie Lancement                               #
 # ---------------------------------------------------------------------------- #
 
 # --------------------- Creation des villes aléatoirement -------------------- #
-cpt = 0
-while cpt < NBRE_VILLE:
-    add_city()
-    cpt = cpt + 1
-# -------------------- Creation de la population de départ ------------------- #
-# pop = getPopulation()
-# print("Population initiale : \n")
-# print(pop.sort_values(by = "Score").reset_index(drop=True))
-# result = algo_genetique(pop)
-# print("Population apres algorithme : \n")
-# print(result)
+
+# # -------------------------- Lancement de l'algorithme ------------------------ #
+# last_pop, valeur_df = algo_genetique(pop)
