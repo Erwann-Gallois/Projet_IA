@@ -28,18 +28,48 @@ dist_matrix = None  # Ajout d'une variable globale pour la matrice de distance
 # ---------------------------------------------------------------------------- #
 
 # ----------------------- Creation ville aléatoirement ----------------------- #
-def add_city(nom = None):
+def add_city(entry_widget, nom=None):
     global dist_matrix  # Utilisation de la variable globale
     global ville_df
     if nom is None:
-        new_ville = pd.DataFrame({"Nom": "Ville " + str(len(ville_df)+1), "x": rd.randrange(0, TAILLE_GRILLE_X), "y": rd.randrange(0, TAILLE_GRILLE_Y)}, index = [0])
-    else:
-        new_ville = pd.DataFrame({"Nom": nom, "x": rd.randrange(0, TAILLE_GRILLE_X), "y": rd.randrange(0, TAILLE_GRILLE_Y)}, index = [0])
+        nom = entry_widget.get()  # Get the city name from the entry widget
+    # Generate random coordinates for the new city
+    x = rd.randint(0, TAILLE_GRILLE_X)
+    y = rd.randint(0, TAILLE_GRILLE_Y)
+    new_ville = pd.DataFrame({"Nom": nom, "x": x, "y": y}, index = [0])
     ville_df = pd.concat([ville_df, new_ville], ignore_index=True)
     # Mise à jour de la matrice de distance chaque fois qu'une nouvelle ville est ajoutée
     coords = ville_df[['x', 'y']].to_numpy()
     dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
+    # Plot the new city on the graph
+    plt.scatter(x, y)
+    plt.text(x, y, nom, fontsize=12)
+    plt.draw()
+    print(ville_df)
+    print(dist_matrix)
     return new_ville
+
+# ------------------------ Suppression d'une ville ------------------------ #
+def remove_last_city():
+    global dist_matrix  # Utilisation de la variable globale
+    global ville_df
+    if not ville_df.empty:  # Check if ville_df is not empty
+        ville_df = ville_df.iloc[:-1]  # Remove the last row from ville_df
+        # Mise à jour de la matrice de distance chaque fois qu'une ville est supprimée
+        coords = ville_df[['x', 'y']].to_numpy()
+        dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
+        # Update the graph
+        plt.cla()  # Clear the axes
+        plt.scatter(ville_df['x'], ville_df['y'])  # Plot the cities
+        for i, txt in enumerate(ville_df["Nom"]):
+            plt.annotate(txt, (ville_df['x'].iat[i], ville_df['y'].iat[i]))  # Add city names
+        plt.title("Carte des Villes")  # Set the title
+        plt.xlabel("Coordonnées X")  # Set the x-axis label
+        plt.ylabel("Coordonnées Y")  # Set the y-axis label
+        plt.xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
+        plt.ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
+        plt.draw()  # Update the graph
+        print(ville_df) 
 
 # ------------------------ Distance entre deux villes ------------------------ #
 def getDistance(nomVille1, nomVille2):
@@ -196,6 +226,4 @@ def algo_genetique (pop):
 # ---------------------------------------------------------------------------- #
 
 # --------------------- Creation des villes aléatoirement -------------------- #
-
-# # -------------------------- Lancement de l'algorithme ------------------------ #
-# last_pop, valeur_df = algo_genetique(pop)
+# -------------------------- Lancement de l'algorithme ------------------------ #

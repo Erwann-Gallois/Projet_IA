@@ -38,7 +38,7 @@ for i in range(4):
     city.grid_columnconfigure(i, weight=1)
 # ------------------------------- Partie graph ------------------------------- #
 fig, ax = plt.subplots()
-ax.set_title('Carte des Villes')
+ax.set_title('Carte des Villes', fontsize=20)
 ax.set_xlabel('coordonnées x')
 ax.set_ylabel('coordonnées y')
 
@@ -104,23 +104,26 @@ label10.grid(row=6, column=2, columnspan=2,  sticky = "w")
 # ------------------------------ Bouton Start ------------------------------- #
 
 button = ctk.CTkButton(master = var, text="Start", font=("Arial", 34))
-button.grid(row=7, column=1,columnspan = 2, rowspan = 3, sticky="w")
+button.grid(row=7, column=1,columnspan = 2, rowspan = 2, sticky="nsew")
 
 # ------------------------------- Partie ville ------------------------------- #
 # -------------------------------- Label Title ------------------------------- #
 label7 = ctk.CTkLabel(text="Problème du voyageur de commerce", font=("Arial", 24), master = city)
 label7.grid(row=0, column=0, columnspan=5)
 
-button = ctk.CTkButton(master = city, text="Ville Aléatoire")
+button = ctk.CTkButton(master = city, text="Ville Aléatoire", font=("Arial", 16), command=lambda: main.add_city(None, "Ville " + str(len(main.ville_df)+1)))
 button.grid(row=1, column=4)
 
-label8 = ctk.CTkLabel(text="Nom de la ville: ", master = city)
+label8 = ctk.CTkLabel(text="Nom de la ville: ", master = city, font = ("Arial", 16))
 entry8 = ctk.CTkEntry(master = city)
-label8.grid(row=1, column=1)
+label8.grid(row=1, column=1, sticky = "e")
 entry8.grid(row=1, column=2)
 
-button = ctk.CTkButton(master = city, text="Ajouter")
-button.grid(row=1, column=3)
+button = ctk.CTkButton(master = city, text="Ajouter", font=("Arial", 16), command= lambda: main.add_city(entry8))
+button.grid(row=1, column=3, sticky = "w")
+
+button = ctk.CTkButton(master = city, text="Supp", font=("Arial", 16), command=lambda:main.remove_last_city)
+button.grid(row=1, column=0, sticky = "w")
 
 
 
