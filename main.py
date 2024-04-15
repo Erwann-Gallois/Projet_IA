@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from scipy.spatial import distance_matrix
+from CTkMessagebox import CTkMessagebox
+import time
 
 # ---------------------------------------------------------------------------- #
 #                                  Constantes                                  #
@@ -17,8 +19,7 @@ NBRE_MAX_GENERATION = 100
 NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
 TAILLE_GRILLE_X = 2000
 TAILLE_GRILLE_Y = 2000
-NBRE_VILLE = 15
-
+# NBRE_VILLE = 15
 # --------------------------- DataFrame des villes --------------------------- #
 ville_df = pd.DataFrame(columns=["Nom", "x", "y"])
 dist_matrix = None  # Ajout d'une variable globale pour la matrice de distance
@@ -28,29 +29,50 @@ dist_matrix = None  # Ajout d'une variable globale pour la matrice de distance
 # ---------------------------------------------------------------------------- #
 
 # ----------------------- Creation ville aléatoirement ----------------------- #
-def add_city(entry_widget, nom=None):
+def verifier(entry_widget):
+    if not entry_widget.get():
+        CTkMessagebox(title="Error", message="Le champs 'Nom de ville' est vide", icon="cancel")
+        return False
+    return True
+
+def add_city(entry_widget, axes, canvas, nom=None):
     global dist_matrix  # Utilisation de la variable globale
     global ville_df
+    
     if nom is None:
-        nom = entry_widget.get()  # Get the city name from the entry widget
-    # Generate random coordinates for the new city
-    x = rd.randint(0, TAILLE_GRILLE_X)
-    y = rd.randint(0, TAILLE_GRILLE_Y)
-    new_ville = pd.DataFrame({"Nom": nom, "x": x, "y": y}, index = [0])
+        nom_ville = "Ville " + str(len(ville_df)+1)
+        new_ville = pd.DataFrame(
+            {"Nom": nom_ville, 
+             "x": rd.randrange(0, TAILLE_GRILLE_X), 
+             "y": rd.randrange(0, TAILLE_GRILLE_Y)
+            }, index = [0])
+    else:
+        if not verifier(entry_widget):  # Vérifie si le champ d'entrée n'est pas vide
+            return
+        nom_ville = entry_widget.get()
+        new_ville = pd.DataFrame({
+            "Nom": nom_ville, 
+            "x": rd.randrange(0, TAILLE_GRILLE_X), 
+            "y": rd.randrange(0, TAILLE_GRILLE_Y)
+            }, index = [0])
     ville_df = pd.concat([ville_df, new_ville], ignore_index=True)
     # Mise à jour de la matrice de distance chaque fois qu'une nouvelle ville est ajoutée
     coords = ville_df[['x', 'y']].to_numpy()
     dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
     # Plot the new city on the graph
-    plt.scatter(x, y)
-    plt.text(x, y, nom, fontsize=12)
-    plt.draw()
-    print(ville_df)
-    print(dist_matrix)
-    return new_ville
+    axes.clear()
+    axes.set_title("Carte des Villes")  # Set the title
+    axes.set_xlabel("Coordonnées X")  # Set the x-axis label
+    axes.set_ylabel("Coordonnées Y")  # Set the y-axis label
+    axes.set_xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
+    axes.set_ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
+    for i, row in ville_df.iterrows():
+        axes.scatter(row['x'], row['y'])
+        axes.text(row['x'], row['y'], row['Nom'], fontsize=12)
+    canvas.draw()
 
 # ------------------------ Suppression d'une ville ------------------------ #
-def remove_last_city():
+def remove_last_city(axes, canvas):
     global dist_matrix  # Utilisation de la variable globale
     global ville_df
     if not ville_df.empty:  # Check if ville_df is not empty
@@ -59,17 +81,16 @@ def remove_last_city():
         coords = ville_df[['x', 'y']].to_numpy()
         dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
         # Update the graph
-        plt.cla()  # Clear the axes
-        plt.scatter(ville_df['x'], ville_df['y'])  # Plot the cities
-        for i, txt in enumerate(ville_df["Nom"]):
-            plt.annotate(txt, (ville_df['x'].iat[i], ville_df['y'].iat[i]))  # Add city names
-        plt.title("Carte des Villes")  # Set the title
-        plt.xlabel("Coordonnées X")  # Set the x-axis label
-        plt.ylabel("Coordonnées Y")  # Set the y-axis label
-        plt.xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
-        plt.ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
-        plt.draw()  # Update the graph
-        print(ville_df) 
+        axes.clear()
+        axes.set_title("Carte des Villes")  # Set the title
+        axes.set_xlabel("Coordonnées X")  # Set the x-axis label
+        axes.set_ylabel("Coordonnées Y")  # Set the y-axis label
+        axes.set_xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
+        axes.set_ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
+        for i, row in ville_df.iterrows():
+            axes.scatter(row['x'], row['y'], color=row['color'])
+            axes.text(row['x'], row['y'], row['Nom'], fontsize=12)
+        canvas.draw()
 
 # ------------------------ Distance entre deux villes ------------------------ #
 def getDistance(nomVille1, nomVille2):
@@ -92,12 +113,11 @@ def getIndividus():
 
 
 # ------------------------- Creation d'une population ------------------------ #
-def getPopulation():
+def getPopulation(taille_population):
     population_df = pd.DataFrame([], columns=["Villes", "Score"])
-    for _ in range(TAILLE_POPULATION):
+    for _ in range(taille_population):
         dict_individu = getIndividus()
         while dict_individu["Villes"] in population_df["Villes"].values:
-            print("Je suis ici")
             dict_individu = getIndividus()
         individu = pd.DataFrame(dict_individu, index = [0])
         population_df = pd.concat([population_df, individu], ignore_index=True)
@@ -146,14 +166,14 @@ def mutate (individu):
     liste_ville = individu["Villes"]
     liste_ville = liste_ville.split(", ")
     i = rd.randint(0, len(liste_ville)-2)
-    # print("i = ", str(i))
     j = rd.randint(0, len(liste_ville)-2)
-    # print("j = ", str(j))
     while (j == i):
         j = rd.randint(0,len(liste_ville)-2)
     tempo = liste_ville[i]
     liste_ville[i] = liste_ville[j]
     liste_ville[j] = tempo
+    liste_ville.pop(-1)
+    liste_ville.append(liste_ville[0])
     distances = []
     for i in range(len(liste_ville) - 1):
         distance = getDistance(liste_ville[i], liste_ville[i+1])
@@ -175,33 +195,59 @@ def plot_valeur(valeur_df, fig, ax):
     plt.pause(0.01)  # Pause pour permettre la mise à jour du graphique
     # return fig, ax
 
+def plot_chemin(best_individu, generation, axes, canvas):
+    list_ville = best_individu["Villes"].split(", ")
+    axes.clear()
+    for i in range(len(ville_df)):
+        if i == 0:
+            axes.scatter(ville_df.loc[i, 'x'], ville_df.loc[i, 'y'], color='red')
+            axes.annotate(ville_df.loc[i, 'Nom'], (ville_df.loc[i, 'x'], ville_df.loc[i, 'y']))
+        else:
+            axes.scatter(ville_df.loc[i, 'x'], ville_df.loc[i, 'y'], color='black')
+            axes.annotate(ville_df.loc[i, 'Nom'], (ville_df.loc[i, 'x'], ville_df.loc[i, 'y']))
+    for i in range(len(list_ville) - 1):
+        x1 = ville_df.loc[ville_df["Nom"] == list_ville[i], "x"].values[0]
+        y1 = ville_df.loc[ville_df["Nom"] == list_ville[i], "y"].values[0]
+        x2 = ville_df.loc[ville_df["Nom"] == list_ville[i+1], "x"].values[0]
+        y2 = ville_df.loc[ville_df["Nom"] == list_ville[i+1], "y"].values[0]
+        axes.plot([x1, x2], [y1, y2], color='blue', label = "Score: " + str(best_individu["Score"]))
+     # Efface l'ancien graphique
+    axes.set_title("Meilleur chemin trouvé à la génération " + str(generation))
+    axes.set_xlabel("Coordonnées X")
+    axes.set_ylabel("Coordonnées Y")
+    axes.set_xlim(0, TAILLE_GRILLE_X)
+    axes.set_ylim(0, TAILLE_GRILLE_Y)
+    # axes.legend(loc='upper right')
+    canvas.draw()
 # ---------------------------------------------------------------------------- #
 #                             Algorithme Génétique                             #
 # ---------------------------------------------------------------------------- #
-def algo_genetique (pop):
+def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_individu, percent_bad_individu, canvas, axes, root):
     i = 0
-    fig, ax = plt.subplots()
+    NBRE_GOOD_INDIVIDU = int(taille_pop * percent_good_individu)
+    pop = getPopulation(taille_pop)
     valeur_df = pd.DataFrame(columns=["Generation", "Min", "Moy"])
-    while i < NBRE_MAX_GENERATION:
+    while i < nbre_generation:
         new_valeur = {"Generation": i, "Min": pop["Score"].min(), "Moy": pop["Score"].mean()}
         valeur_df = pd.concat([valeur_df, pd.DataFrame([new_valeur], index = [0])], ignore_index=True)
-        plot_valeur(valeur_df, fig, ax)
         # -------------------- Classe parents par score croissant -------------------- #
         pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
+        plot_chemin(pop_trie.iloc[0], i, axes, canvas)
+        root.update()
         new_pop = pd.DataFrame(columns = ["Villes", "Score"])
         # ---------------------- On selectionne les bon parents ---------------------- #
         new_pop = pop_trie[:NBRE_GOOD_INDIVIDU]
         # ---------------- On ajoute possiblement des mauvais parents ---------------- #
         for j in range(NBRE_GOOD_INDIVIDU, len(pop_trie)):
             rand = rd.random()
-            if rand <= PERCENT_BAD_INDIVIDU:
+            if rand <= percent_bad_individu:
                 bad_individu = pop_trie.iloc[[j]]
                 new_pop = pd.concat([new_pop, bad_individu], ignore_index= True)
         # --------------------------- Creation des enfants --------------------------- #
-        while len(new_pop) < TAILLE_POPULATION:
+        while len(new_pop) < taille_pop:
             parents = new_pop.sample(n=2).reset_index(drop=True)
             enfants = getEnfants(parent1= parents.iloc[0], parent2= parents.iloc[1])
-            if TAILLE_POPULATION - len(new_pop) >= 2:
+            if taille_pop - len(new_pop) >= 2:
                 new_pop = pd.concat([new_pop, enfants], ignore_index=True)
             else:
                 rand = rd.randint(0,1)
@@ -210,7 +256,7 @@ def algo_genetique (pop):
         # --------------------------------- Mutations -------------------------------- #
         for k in range(len(new_pop)):
             rand = rd.random()
-            if rand <=CHANCE_MUTATION:
+            if rand <= chance_mutation:
                 indivudu = new_pop.iloc[k]
                 new_pop = new_pop.drop(k).reset_index(drop=True)
                 new_individu = mutate(indivudu)
@@ -218,12 +264,6 @@ def algo_genetique (pop):
         # -------------- Recursivité pour generer la nouvelle population ------------- #
         i = i + 1
         pop = new_pop
+        time.sleep(0.2)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
-
-# ---------------------------------------------------------------------------- #
-#                               Partie Lancement                               #
-# ---------------------------------------------------------------------------- #
-
-# --------------------- Creation des villes aléatoirement -------------------- #
-# -------------------------- Lancement de l'algorithme ------------------------ #

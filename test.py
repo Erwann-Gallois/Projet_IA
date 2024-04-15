@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 import main as main
@@ -37,96 +38,75 @@ for i in range(2):
 for i in range(4):
     city.grid_columnconfigure(i, weight=1)
 # ------------------------------- Partie graph ------------------------------- #
-fig, ax = plt.subplots()
-ax.set_title('Carte des Villes', fontsize=20)
-ax.set_xlabel('coordonnées x')
-ax.set_ylabel('coordonnées y')
-
-ax.set_ylim(0, main.TAILLE_GRILLE_Y)
-ax.set_xlim(0, main.TAILLE_GRILLE_X)
-
+fig = Figure(figsize=(5, 5), dpi=100)
+ax = fig.add_subplot(111)
 canvas = FigureCanvasTkAgg(fig, master=graph)
-canvas.draw()
-canvas.get_tk_widget().pack(side= "left", fill="both", expand=True)
+canvas.get_tk_widget().pack(fill=ctk.BOTH, expand=True)
+
 # ------------------------------ Partie variable ----------------------------- #
-
-# label = ctk.CTkLabel(text="Colonne 0", font=("Arial", 20), master = var)
-# label.grid(row=0, column=0, sticky="nsew")
-
-# label21 = ctk.CTkLabel(text="Colonne 1", font=("Arial", 20), master = var)
-# label21.grid(row=0, column=1, sticky="nsew")
-
-# label22 = ctk.CTkLabel(text="Colonne 2", font=("Arial", 20), master = var)
-# label22.grid(row=0, column=2, sticky="nsew")
-
-# label23 = ctk.CTkLabel(text="Colonne 3", font=("Arial", 20), master = var)
-# label23.grid(row=0, column=3, sticky="nsew")
 # -------------------------------- Label Title ------------------------------- #
-label1 = ctk.CTkLabel(text="Variables", font=("Arial", 24), master = var)
-label1.grid(row=0, column=0, columnspan=4)
+var_title = ctk.CTkLabel(text="Variables", font=("Arial", 24), master = var)
+var_title.grid(row=0, column=0, columnspan=4)
 
 # ----------------------------- Taille Population ---------------------------- #
-label2 = ctk.CTkLabel(text="Taille de la population: ", master = var, font = ("Arial", 16))
-entry2 = ctk.CTkEntry(master = var)
-label2.grid(row=1, column=0, columnspan=2)
-entry2.grid(row=1, column=2, columnspan=2, sticky="w")
+taille_pop_label = ctk.CTkLabel(text="Taille de la population: ", master = var, font = ("Arial", 16))
+taille_pop_entry = ctk.CTkEntry(master = var)
+taille_pop_label.grid(row=1, column=0, columnspan=2)
+taille_pop_entry.grid(row=1, column=2, columnspan=2, sticky="w")
 
 # ------------------------------ Chance Mutation ----------------------------- #
-label3 = ctk.CTkLabel(text="Chance de mutation: ", master = var, font = ("Arial", 16))
-entry3 = ctk.CTkEntry(master = var)
-label3.grid(row=2, column=0, columnspan=2)
-entry3.grid(row=2, column=2, columnspan=2, sticky="w")
+mutation_rate_label = ctk.CTkLabel(text="Chance de mutation: ", master = var, font = ("Arial", 16))
+mutation_rate_entry = ctk.CTkEntry(master = var)
+mutation_rate_label.grid(row=2, column=0, columnspan=2)
+mutation_rate_entry.grid(row=2, column=2, columnspan=2, sticky="w")
 
 # ----------------------------- Nombre Generation ---------------------------- #
-label4 = ctk.CTkLabel(text="Nbre de generation: ", master = var, font = ("Arial", 16))
-entry4 = ctk.CTkEntry(master = var)
-label4.grid(row=3, column=0, columnspan=2)
-entry4.grid(row=3, column=2, columnspan=2, sticky="w")
+nbre_gene_label = ctk.CTkLabel(text="Nbre de generation: ", master = var, font = ("Arial", 16))
+nbre_gene_entry = ctk.CTkEntry(master = var)
+nbre_gene_label.grid(row=3, column=0, columnspan=2)
+nbre_gene_entry.grid(row=3, column=2, columnspan=2, sticky="w")
 
 # ------------------------- Pourcentage bon individu ------------------------- #
-label5 = ctk.CTkLabel(text="% bon individu: ", master = var, font = ("Arial", 16))
-entry5 = ctk.CTkEntry(master = var)
-label5.grid(row=4, column=0, columnspan=2)
-entry5.grid(row=4, column=2, columnspan=2, sticky = "w")
+percent_good_individu_label = ctk.CTkLabel(text="% bon individu: ", master = var, font = ("Arial", 16))
+percent_good_individu_entry = ctk.CTkEntry(master = var)
+percent_good_individu_label.grid(row=4, column=0, columnspan=2)
+percent_good_individu_entry.grid(row=4, column=2, columnspan=2, sticky = "w")
 
 # ----------------------- Pourcentage mauvais individu ----------------------- #
-label6 = ctk.CTkLabel(text="% mauvais individu: ", master = var, font = ("Arial", 16))
-entry6 = ctk.CTkEntry(master = var)
-label6.grid(row=5, column=0, columnspan=2)
-entry6.grid(row=5, column=2, columnspan=2, sticky = "w")
+percent_bad_individu_label = ctk.CTkLabel(text="% mauvais individu: ", master = var, font = ("Arial", 16))
+percent_bad_individu_entry = ctk.CTkEntry(master = var)
+percent_bad_individu_label.grid(row=5, column=0, columnspan=2)
+percent_bad_individu_entry.grid(row=5, column=2, columnspan=2, sticky = "w")
 
 # ----------------------- Pourcentage mauvais individu ----------------------- #
-label9 = ctk.CTkLabel(text="Meilleur Score: ", master = var, font = ("Arial", 16))
-label9.grid(row=6, column=0, columnspan=2)
-label10 = ctk.CTkLabel(text="0", master = var)
-label10.grid(row=6, column=2, columnspan=2,  sticky = "w")
+# best_score_title = ctk.CTkLabel(text="Meilleur Score: ", master = var, font = ("Arial", 16))
+# best_score_title.grid(row=6, column=0, columnspan=2)
+# best_score_valeur = ctk.CTkLabel(text= main.best_score, master = var)
+# best_score_valeur.grid(row=6, column=2, columnspan=2,  sticky = "w")
 
 # ------------------------------ Bouton Start ------------------------------- #
 
-button = ctk.CTkButton(master = var, text="Start", font=("Arial", 34))
-button.grid(row=7, column=1,columnspan = 2, rowspan = 2, sticky="nsew")
+start_btn = ctk.CTkButton(master = var, text="Start", font=("Arial", 34), command= lambda : main.algo_genetique(int(taille_pop_entry.get()), float(mutation_rate_entry.get()), int(nbre_gene_entry.get()), float(percent_good_individu_entry.get()), float(percent_bad_individu_entry.get()), canvas, ax, root))
+start_btn.grid(row=7, column=1,columnspan = 2, rowspan = 2, sticky="nsew")
 
 # ------------------------------- Partie ville ------------------------------- #
 # -------------------------------- Label Title ------------------------------- #
-label7 = ctk.CTkLabel(text="Problème du voyageur de commerce", font=("Arial", 24), master = city)
-label7.grid(row=0, column=0, columnspan=5)
+main_title_label = ctk.CTkLabel(text="Problème du voyageur de commerce", font=("Arial", 24), master = city)
+main_title_label.grid(row=0, column=0, columnspan=5)
 
-button = ctk.CTkButton(master = city, text="Ville Aléatoire", font=("Arial", 16), command=lambda: main.add_city(None, "Ville " + str(len(main.ville_df)+1)))
-button.grid(row=1, column=4)
+ville_random_btn = ctk.CTkButton(master = city, text="Ville Aléatoire", font=("Arial", 16), command=lambda: main.add_city("Ville " + str(len(main.ville_df)+1), ax, canvas, None))
+ville_random_btn.grid(row=1, column=4)
 
-label8 = ctk.CTkLabel(text="Nom de la ville: ", master = city, font = ("Arial", 16))
-entry8 = ctk.CTkEntry(master = city)
-label8.grid(row=1, column=1, sticky = "e")
-entry8.grid(row=1, column=2)
+nom_ville_title = ctk.CTkLabel(text="Nom de la ville: ", master = city, font = ("Arial", 16))
+nom_ville_entry = ctk.CTkEntry(master = city)
+nom_ville_title.grid(row=1, column=1, sticky = "e")
+nom_ville_entry.grid(row=1, column=2)
 
-button = ctk.CTkButton(master = city, text="Ajouter", font=("Arial", 16), command= lambda: main.add_city(entry8))
-button.grid(row=1, column=3, sticky = "w")
+add_city_btn = ctk.CTkButton(master = city, text="Ajouter", font=("Arial", 16), command= lambda: main.add_city(nom_ville_entry, ax, canvas, 2))
+add_city_btn.grid(row=1, column=3, sticky = "w")
 
-button = ctk.CTkButton(master = city, text="Supp", font=("Arial", 16), command=lambda:main.remove_last_city)
-button.grid(row=1, column=0, sticky = "w")
-
-
+supp_city_btn = ctk.CTkButton(master = city, text="Supp", font=("Arial", 16), command=lambda:main.remove_last_city(axes= ax, canvas= canvas))
+supp_city_btn.grid(row=1, column=0, sticky = "w")
 
 # ---------------------------- initiate the window --------------------------- #
 root.mainloop()
-root.destroy()
