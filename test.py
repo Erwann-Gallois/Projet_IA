@@ -4,27 +4,31 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 import main as main
+from CTkMessagebox import CTkMessagebox as ctkmsg
+
 
 # generate root
 root = ctk.CTk()
 root.title("Shortest Path")
-root.geometry("1200x800")
+root.geometry("1800x800")
 root.resizable(0, 0)
 
 # ---------------------------- Création des frames --------------------------- #
 var = ctk.CTkFrame(master=root)  # Frame à droite
 graph = ctk.CTkFrame(master=root)  # Frame pour le graphique
+graph2 = ctk.CTkFrame(master=root)  # Frame pour le graphique
 city = ctk.CTkFrame(master = root)  # Frame en haut à gauche
 
 # --------------------------- Placement des frames --------------------------- #
-var.grid(row=0, column=7, rowspan=10, columnspan=3, sticky="nsew")  # Frame à droite prend 5 colonnes et toutes les lignes
+var.grid(row=0, column=15, rowspan=10, columnspan=5, sticky="nsew")  # Frame à droite prend 5 colonnes et toutes les lignes
 graph.grid(row=3, column=0, rowspan=7, columnspan=7, sticky="nsew")  # Frame pour le graphique prend 5 colonnes et 7 lignes
-city.grid(row=0, column=0, rowspan=3, columnspan=7, sticky="nsew")  # Frame en haut à gauche prend 5 colonnes et 3 lignes
+graph2.grid(row=3, column=7, rowspan=7, columnspan=8, sticky="nsew")  # Frame pour le graphique prend 5 colonnes et 7 lignes
+city.grid(row=0, column=0, rowspan=3, columnspan=15, sticky="nsew")  # Frame en haut à gauche prend 5 colonnes et 3 lignes
 
 # Redimensionnement des lignes et colonnes pour que les frames s'adaptent à la taille de la fenêtre
 for i in range(10):
     root.grid_rowconfigure(i, weight=1)
-for i in range(10):
+for i in range(20):
     root.grid_columnconfigure(i, weight=1)
 
 # Redimensionnement des lignes et colonnes pour que les frames s'adaptent à la taille de la fenêtre
@@ -43,7 +47,11 @@ ax = fig.add_subplot(111)
 canvas = FigureCanvasTkAgg(fig, master=graph)
 canvas.get_tk_widget().pack(fill=ctk.BOTH, expand=True)
 
-# ------------------------------ Partie variable ----------------------------- #
+fig2 = Figure(figsize=(5, 5), dpi=100)
+ax2 = fig2.add_subplot(111)
+canvas2 = FigureCanvasTkAgg(fig2, master=graph2)
+canvas2.get_tk_widget().pack(fill=ctk.BOTH, expand=True)
+
 # -------------------------------- Label Title ------------------------------- #
 var_title = ctk.CTkLabel(text="Variables", font=("Arial", 24), master = var)
 var_title.grid(row=0, column=0, columnspan=4)
@@ -86,7 +94,7 @@ percent_bad_individu_entry.grid(row=5, column=2, columnspan=2, sticky = "w")
 
 # ------------------------------ Bouton Start ------------------------------- #
 
-start_btn = ctk.CTkButton(master = var, text="Start", font=("Arial", 34), command= lambda : main.algo_genetique(int(taille_pop_entry.get()), float(mutation_rate_entry.get()), int(nbre_gene_entry.get()), float(percent_good_individu_entry.get()), float(percent_bad_individu_entry.get()), canvas, ax, root))
+start_btn = ctk.CTkButton(master = var, text="Start", font=("Arial", 34), command= lambda : main.algo_genetique(int(taille_pop_entry.get()), float(mutation_rate_entry.get()), int(nbre_gene_entry.get()), float(percent_good_individu_entry.get()), float(percent_bad_individu_entry.get()), canvas, ax, root, canvas2, ax2))
 start_btn.grid(row=7, column=1,columnspan = 2, rowspan = 2, sticky="nsew")
 
 # ------------------------------- Partie ville ------------------------------- #
@@ -109,4 +117,6 @@ supp_city_btn = ctk.CTkButton(master = city, text="Supp", font=("Arial", 16), co
 supp_city_btn.grid(row=1, column=0, sticky = "w")
 
 # ---------------------------- initiate the window --------------------------- #
+
+
 root.mainloop()

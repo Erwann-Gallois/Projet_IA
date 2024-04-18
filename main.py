@@ -27,7 +27,11 @@ dist_matrix = None  # Ajout d'une variable globale pour la matrice de distance
 # ---------------------------------------------------------------------------- #
 #                               Fonctions utiles                               #
 # ---------------------------------------------------------------------------- #
+def getX (ville):
+    return ville_df.loc[ville_df["Nom"] == ville, "x"].values[0]
 
+def getY (ville):
+    return ville_df.loc[ville_df["Nom"] == ville, "y"].values[0]
 # ----------------------- Creation ville aléatoirement ----------------------- #
 def verifier(entry_widget):
     if not entry_widget.get():
@@ -185,31 +189,31 @@ def mutate (individu):
 #                               Partie Graphique                               #
 # ---------------------------------------------------------------------------- #
 
-def plot_valeur(valeur_df, fig, ax):
-    ax.cla()  # Efface l'ancien graphique
+def plot_valeur(valeur_df, canvas, ax):
+    ax.clear()  # Efface l'ancien graphique
     ax.plot(valeur_df["Generation"], valeur_df["Min"], label='Min')
     ax.plot(valeur_df["Generation"], valeur_df["Moy"], label='Moy')
     ax.legend(loc='upper right')
-    plt.title("Evolution des valeurs")
-    fig.canvas.draw()  # Redessine le graphique
-    plt.pause(0.01)  # Pause pour permettre la mise à jour du graphique
-    # return fig, ax
+    ax.set_title("Evolution des valeurs")
+    ax.set_xlabel("Génération")
+    ax.set_ylabel("Valeur")
+    canvas.draw()
 
 def plot_chemin(best_individu, generation, axes, canvas):
     list_ville = best_individu["Villes"].split(", ")
     axes.clear()
-    for i in range(len(ville_df)):
+    for i in range(len(list_ville)-1):
         if i == 0:
-            axes.scatter(ville_df.loc[i, 'x'], ville_df.loc[i, 'y'], color='red')
-            axes.annotate(ville_df.loc[i, 'Nom'], (ville_df.loc[i, 'x'], ville_df.loc[i, 'y']))
+            axes.scatter(getX(list_ville[i]), getY(list_ville[i]), color='green')
+            axes.annotate(list_ville[i], (getX(list_ville[i]), getY(list_ville[i])))
         else:
-            axes.scatter(ville_df.loc[i, 'x'], ville_df.loc[i, 'y'], color='black')
-            axes.annotate(ville_df.loc[i, 'Nom'], (ville_df.loc[i, 'x'], ville_df.loc[i, 'y']))
+            axes.scatter(getX(list_ville[i]), getY(list_ville[i]), color='blue')
+            axes.annotate(list_ville[i], (getX(list_ville[i]), getY(list_ville[i])))
     for i in range(len(list_ville) - 1):
-        x1 = ville_df.loc[ville_df["Nom"] == list_ville[i], "x"].values[0]
-        y1 = ville_df.loc[ville_df["Nom"] == list_ville[i], "y"].values[0]
-        x2 = ville_df.loc[ville_df["Nom"] == list_ville[i+1], "x"].values[0]
-        y2 = ville_df.loc[ville_df["Nom"] == list_ville[i+1], "y"].values[0]
+        x1 = getX(list_ville[i])
+        y1 = getY(list_ville[i])
+        x2 = getX(list_ville[i+1])
+        y2 = getY(list_ville[i+1])
         axes.plot([x1, x2], [y1, y2], color='blue', label = "Score: " + str(best_individu["Score"]))
      # Efface l'ancien graphique
     axes.set_title("Meilleur chemin trouvé à la génération " + str(generation))
@@ -222,7 +226,7 @@ def plot_chemin(best_individu, generation, axes, canvas):
 # ---------------------------------------------------------------------------- #
 #                             Algorithme Génétique                             #
 # ---------------------------------------------------------------------------- #
-def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_individu, percent_bad_individu, canvas, axes, root):
+def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_individu, percent_bad_individu, canvas, axes, root, canvas2, axes2):
     i = 0
     NBRE_GOOD_INDIVIDU = int(taille_pop * percent_good_individu)
     pop = getPopulation(taille_pop)
@@ -233,6 +237,7 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # -------------------- Classe parents par score croissant -------------------- #
         pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
         plot_chemin(pop_trie.iloc[0], i, axes, canvas)
+        plot_valeur(valeur_df, canvas2, axes2)
         root.update()
         new_pop = pd.DataFrame(columns = ["Villes", "Score"])
         # ---------------------- On selectionne les bon parents ---------------------- #
@@ -264,6 +269,8 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # -------------- Recursivité pour generer la nouvelle population ------------- #
         i = i + 1
         pop = new_pop
-        time.sleep(0.2)
+        time.sleep(0.05)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
+
+# ---------------------------------------------------------------------------- #
