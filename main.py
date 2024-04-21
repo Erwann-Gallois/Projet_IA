@@ -19,7 +19,6 @@ NBRE_MAX_GENERATION = 100
 NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
 TAILLE_GRILLE_X = 2000
 TAILLE_GRILLE_Y = 2000
-# NBRE_VILLE = 15
 # --------------------------- DataFrame des villes --------------------------- #
 ville_df = pd.DataFrame(columns=["Nom", "x", "y"])
 dist_matrix = None  # Ajout d'une variable globale pour la matrice de distance
@@ -272,5 +271,3 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         time.sleep(0.05)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
-
-# ---------------------------------------------------------------------------- #
