@@ -91,7 +91,7 @@ def remove_last_city(axes, canvas):
         axes.set_xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
         axes.set_ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
         for i, row in ville_df.iterrows():
-            axes.scatter(row['x'], row['y'], color=row['color'])
+            axes.scatter(row['x'], row['y'])
             axes.text(row['x'], row['y'], row['Nom'], fontsize=12)
         canvas.draw()
 
@@ -101,11 +101,10 @@ def getDistance(nomVille1, nomVille2):
     return dist_matrix[nomVille1][nomVille2]
 
 # --------------------------- Creation un individu --------------------------- #
-def getIndividus():
-    rand = ville_df.sample(frac=1).reset_index(drop=True)
+def getIndividus(ville_depart):
+    rand = ville_df.drop(ville_depart.index).sample(frac=1).reset_index(drop=True)
     # ------------------------ Ajout ville depart a la fin ----------------------- #
-    first_row = rand.iloc[[0]]
-    rand = pd.concat([rand, first_row], ignore_index=True)
+    rand = pd.concat([ville_depart, rand, ville_depart], ignore_index=True)
     distances = []
     for i in range(len(rand) - 1):
         distance = getDistance(rand.loc[i, 'Nom'], rand.loc[i + 1, 'Nom'])
@@ -113,28 +112,28 @@ def getIndividus():
     villes = ", ".join(rand["Nom"])
     score = sum(distances)
     return {"Villes": villes, "Score": score}
-
-
 # ------------------------- Creation d'une population ------------------------ #
-def getPopulation(taille_population):
+def getPopulation(taille_population, ville_depart):
     population_df = pd.DataFrame([], columns=["Villes", "Score"])
     for _ in range(taille_population):
-        dict_individu = getIndividus()
+        dict_individu = getIndividus(ville_depart)
         while dict_individu["Villes"] in population_df["Villes"].values:
-            dict_individu = getIndividus()
+            dict_individu = getIndividus(ville_depart)
         individu = pd.DataFrame(dict_individu, index = [0])
         population_df = pd.concat([population_df, individu], ignore_index=True)
     return population_df
 
 # --------------------------- Creation des enfants --------------------------- #
-def getEnfants(parent1, parent2):
+def getEnfants(parent1, parent2, ville_depart):
     # *Recuperation ville venant du dataFrame
     liste_ville1 = parent1["Villes"]
     liste_ville2 = parent2["Villes"]
     # ---------------------------------------------------------------------------- #
     # *Creation d'un tableau contenant les villes
     liste_ville1 = liste_ville1.split(", ")
+    liste_ville1 = liste_ville1[1:-1]
     liste_ville2 = liste_ville2.split(", ")
+    liste_ville2 = liste_ville2[1:-1]
     # ---------------------------------------------------------------------------- #
     # *Creation de la premiere partie des enfants
     enfant1 = liste_ville1[:int(len(liste_ville1)/2)]
@@ -144,10 +143,12 @@ def getEnfants(parent1, parent2):
     for i in range (len(liste_ville2)-1, -1, -1):
         if liste_ville2[i] not in enfant1:
             enfant1.append(liste_ville2[i])
+    enfant1.insert(0, ville_depart["Nom"].values[0])
     enfant1.append(enfant1[0])
     for i in range (len(liste_ville1)-1, -1, -1):
         if liste_ville1[i] not in enfant2:
             enfant2.append(liste_ville1[i])
+    enfant2.insert(0, ville_depart["Nom"].values[0])
     enfant2.append(enfant2[0])
     # ---------------------------------------------------------------------------- #
     # * Calcul Score des enfants
@@ -165,17 +166,18 @@ def getEnfants(parent1, parent2):
     return enfants_df
 
 # --------------------------------- Mutation --------------------------------- #
-def mutate (individu):
+def mutate (individu, ville_depart):
     liste_ville = individu["Villes"]
     liste_ville = liste_ville.split(", ")
-    i = rd.randint(0, len(liste_ville)-2)
-    j = rd.randint(0, len(liste_ville)-2)
+    liste_ville = liste_ville[1:-1]
+    i = rd.randint(0, len(liste_ville)-1)
+    j = rd.randint(0, len(liste_ville)-1)
     while (j == i):
-        j = rd.randint(0,len(liste_ville)-2)
+        j = rd.randint(0, len(liste_ville)-1)
     tempo = liste_ville[i]
     liste_ville[i] = liste_ville[j]
     liste_ville[j] = tempo
-    liste_ville.pop(-1)
+    liste_ville.insert(0, ville_depart["Nom"].values[0])
     liste_ville.append(liste_ville[0])
     distances = []
     for i in range(len(liste_ville) - 1):
@@ -228,7 +230,8 @@ def plot_chemin(best_individu, generation, axes, canvas):
 def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_individu, percent_bad_individu, canvas, axes, root, canvas2, axes2):
     i = 0
     NBRE_GOOD_INDIVIDU = int(taille_pop * percent_good_individu)
-    pop = getPopulation(taille_pop)
+    ville_depart = ville_df.loc[[rd.randint(0, len(ville_df)-1)]]
+    pop = getPopulation(taille_pop, ville_depart)
     valeur_df = pd.DataFrame(columns=["Generation", "Min", "Moy"])
     while i < nbre_generation:
         new_valeur = {"Generation": i, "Min": pop["Score"].min(), "Moy": pop["Score"].mean()}
@@ -250,7 +253,7 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # --------------------------- Creation des enfants --------------------------- #
         while len(new_pop) < taille_pop:
             parents = new_pop.sample(n=2).reset_index(drop=True)
-            enfants = getEnfants(parent1= parents.iloc[0], parent2= parents.iloc[1])
+            enfants = getEnfants(parent1= parents.iloc[0], parent2= parents.iloc[1], ville_depart=ville_depart)
             if taille_pop - len(new_pop) >= 2:
                 new_pop = pd.concat([new_pop, enfants], ignore_index=True)
             else:
@@ -260,14 +263,16 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # --------------------------------- Mutations -------------------------------- #
         for k in range(len(new_pop)):
             rand = rd.random()
+            print(rand <= chance_mutation)
             if rand <= chance_mutation:
                 indivudu = new_pop.iloc[k]
                 new_pop = new_pop.drop(k).reset_index(drop=True)
-                new_individu = mutate(indivudu)
+                new_individu = mutate(indivudu, ville_depart)
                 new_pop = pd.concat([new_pop, new_individu], ignore_index=True)
         # -------------- Recursivité pour generer la nouvelle population ------------- #
         i = i + 1
         pop = new_pop
-        time.sleep(0.05)
+        time.sleep(0.1)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
+
