@@ -11,12 +11,6 @@ import time
 # ---------------------------------------------------------------------------- #
 #                                  Constantes                                  #
 # ---------------------------------------------------------------------------- #
-TAILLE_POPULATION = 100
-CHANCE_MUTATION = 0.01  # 10%
-PERCENT_GOOD_INDIVIDU = 0.4  # Pourcentage d'individus ayant les meilleurs scores pris pour la prochaine génération
-PERCENT_BAD_INDIVIDU = 0.05  # Pourcentage d'indivudus ayant un score en dessous de la moyenne pour la prochaine génration
-NBRE_MAX_GENERATION = 100
-NBRE_GOOD_INDIVIDU = int(TAILLE_POPULATION * PERCENT_GOOD_INDIVIDU)
 TAILLE_GRILLE_X = 2000
 TAILLE_GRILLE_Y = 2000
 # --------------------------- DataFrame des villes --------------------------- #
@@ -31,13 +25,13 @@ def getX (ville):
 
 def getY (ville):
     return ville_df.loc[ville_df["Nom"] == ville, "y"].values[0]
-# ----------------------- Creation ville aléatoirement ----------------------- #
+
 def verifier(entry_widget):
     if not entry_widget.get():
         CTkMessagebox(title="Error", message="Le champs 'Nom de ville' est vide", icon="cancel")
         return False
     return True
-
+# ----------------------- Creation ville aléatoirement ----------------------- #
 def add_city(entry_widget, axes, canvas, root, nom=None):
     global dist_matrix  # Utilisation de la variable globale
     global ville_df
@@ -64,11 +58,11 @@ def add_city(entry_widget, axes, canvas, root, nom=None):
     dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
     # Plot the new city on the graph
     axes.clear()
-    axes.set_title("Carte des Villes")  # Set the title
-    axes.set_xlabel("Coordonnées X")  # Set the x-axis label
-    axes.set_ylabel("Coordonnées Y")  # Set the y-axis label
-    axes.set_xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
-    axes.set_ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
+    axes.set_title("Carte des Villes")  
+    axes.set_xlabel("Coordonnées X")  
+    axes.set_ylabel("Coordonnées Y") 
+    axes.set_xlim(0, TAILLE_GRILLE_X) 
+    axes.set_ylim(0, TAILLE_GRILLE_Y) 
     for i, row in ville_df.iterrows():
         axes.scatter(row['x'], row['y'])
         axes.text(row['x'], row['y'], row['Nom'], fontsize=12)
@@ -78,18 +72,18 @@ def add_city(entry_widget, axes, canvas, root, nom=None):
 def remove_last_city(axes, canvas):
     global dist_matrix  # Utilisation de la variable globale
     global ville_df
-    if not ville_df.empty:  # Check if ville_df is not empty
-        ville_df = ville_df.iloc[:-1]  # Remove the last row from ville_df
+    if not ville_df.empty:  # Verifie si le DataFrame n'est pas vide
+        ville_df = ville_df.iloc[:-1]  # Enlever la derniere ville
         # Mise à jour de la matrice de distance chaque fois qu'une ville est supprimée
         coords = ville_df[['x', 'y']].to_numpy()
         dist_matrix = pd.DataFrame(distance_matrix(coords, coords), index=ville_df["Nom"], columns=ville_df["Nom"])
-        # Update the graph
+        # Mise a jour du graphe
         axes.clear()
-        axes.set_title("Carte des Villes")  # Set the title
-        axes.set_xlabel("Coordonnées X")  # Set the x-axis label
-        axes.set_ylabel("Coordonnées Y")  # Set the y-axis label
-        axes.set_xlim(0, TAILLE_GRILLE_X)  # Set the x-axis limits
-        axes.set_ylim(0, TAILLE_GRILLE_Y)  # Set the y-axis limits
+        axes.set_title("Carte des Villes")
+        axes.set_xlabel("Coordonnées X")
+        axes.set_ylabel("Coordonnées Y")
+        axes.set_xlim(0, TAILLE_GRILLE_X)
+        axes.set_ylim(0, TAILLE_GRILLE_Y)
         for i, row in ville_df.iterrows():
             axes.scatter(row['x'], row['y'])
             axes.text(row['x'], row['y'], row['Nom'], fontsize=12)
@@ -202,7 +196,7 @@ def plot_valeur(valeur_df, canvas, ax):
 
 def plot_chemin(best_individu, generation, axes, canvas):
     list_ville = best_individu["Villes"].split(", ")
-    axes.clear()
+    axes.clear() # Efface l'ancien graphique
     for i in range(len(list_ville)-1):
         if i == 0:
             axes.scatter(getX(list_ville[i]), getY(list_ville[i]), color='red', s=100)
@@ -216,13 +210,11 @@ def plot_chemin(best_individu, generation, axes, canvas):
         x2 = getX(list_ville[i+1])
         y2 = getY(list_ville[i+1])
         axes.plot([x1, x2], [y1, y2], color='blue', label = "Score: " + str(best_individu["Score"]))
-     # Efface l'ancien graphique
     axes.set_title("Meilleur chemin trouvé à la génération " + str(generation))
     axes.set_xlabel("Coordonnées X")
     axes.set_ylabel("Coordonnées Y")
     axes.set_xlim(0, TAILLE_GRILLE_X)
     axes.set_ylim(0, TAILLE_GRILLE_Y)
-    # axes.legend(loc='upper right')
     canvas.draw()
 # ---------------------------------------------------------------------------- #
 #                             Algorithme Génétique                             #
@@ -238,9 +230,11 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         valeur_df = pd.concat([valeur_df, pd.DataFrame([new_valeur], index = [0])], ignore_index=True)
         # -------------------- Classe parents par score croissant -------------------- #
         pop_trie = pop.sort_values(by = "Score").reset_index(drop=True)
+        # ---------------------------- Affichage graphique --------------------------- #
         plot_chemin(pop_trie.iloc[0], i, axes, canvas)
         plot_valeur(valeur_df, canvas2, axes2)
         root.update()
+        # -------------------- Creation de la nouvelle population -------------------- #
         new_pop = pd.DataFrame(columns = ["Villes", "Score"])
         # ---------------------- On selectionne les bon parents ---------------------- #
         new_pop = pop_trie[:NBRE_GOOD_INDIVIDU]
