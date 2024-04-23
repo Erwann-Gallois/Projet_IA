@@ -38,12 +38,12 @@ def verifier(entry_widget):
         return False
     return True
 
-def add_city(entry_widget, axes, canvas, nom=None):
+def add_city(entry_widget, axes, canvas, root, nom=None):
     global dist_matrix  # Utilisation de la variable globale
     global ville_df
     
     if nom is None:
-        nom_ville = "Ville " + str(len(ville_df)+1)
+        nom_ville = entry_widget
         new_ville = pd.DataFrame(
             {"Nom": nom_ville, 
              "x": rd.randrange(0, TAILLE_GRILLE_X), 
@@ -73,7 +73,7 @@ def add_city(entry_widget, axes, canvas, nom=None):
         axes.scatter(row['x'], row['y'])
         axes.text(row['x'], row['y'], row['Nom'], fontsize=12)
     canvas.draw()
-
+    root.update()
 # ------------------------ Suppression d'une ville ------------------------ #
 def remove_last_city(axes, canvas):
     global dist_matrix  # Utilisation de la variable globale
@@ -205,7 +205,7 @@ def plot_chemin(best_individu, generation, axes, canvas):
     axes.clear()
     for i in range(len(list_ville)-1):
         if i == 0:
-            axes.scatter(getX(list_ville[i]), getY(list_ville[i]), color='green')
+            axes.scatter(getX(list_ville[i]), getY(list_ville[i]), color='red', s=100)
             axes.annotate(list_ville[i], (getX(list_ville[i]), getY(list_ville[i])))
         else:
             axes.scatter(getX(list_ville[i]), getY(list_ville[i]), color='blue')
@@ -263,7 +263,6 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # --------------------------------- Mutations -------------------------------- #
         for k in range(len(new_pop)):
             rand = rd.random()
-            print(rand <= chance_mutation)
             if rand <= chance_mutation:
                 indivudu = new_pop.iloc[k]
                 new_pop = new_pop.drop(k).reset_index(drop=True)
@@ -275,4 +274,3 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         time.sleep(0.1)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
-
