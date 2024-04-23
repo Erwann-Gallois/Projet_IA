@@ -265,6 +265,6 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # -------------- Recursivité pour generer la nouvelle population ------------- #
         i = i + 1
         pop = new_pop
-        time.sleep(5)
+        time.sleep(0.1)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
