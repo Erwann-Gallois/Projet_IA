@@ -33,7 +33,7 @@ def verifier(entry_widget):
     return True
 # ----------------------- Creation ville aléatoirement ----------------------- #
 def add_city(entry_widget, axes, canvas, root, nom=None):
-    global dist_matrix  # Utilisation de la variable globale
+    global dist_matrix
     global ville_df
     
     if nom is None:
@@ -265,6 +265,6 @@ def algo_genetique (taille_pop, chance_mutation, nbre_generation, percent_good_i
         # -------------- Recursivité pour generer la nouvelle population ------------- #
         i = i + 1
         pop = new_pop
-        time.sleep(0.1)
+        time.sleep(5)
     new_pop = pop.sort_values(by = "Score").reset_index(drop=True)
     return new_pop, valeur_df
